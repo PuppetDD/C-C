@@ -40,7 +40,6 @@ public class NioServerMain extends Application {
     public void groupSend(){
         for(SocketChannel sc: NioServer.getServerSe().getList().getSelectionModel().getSelectedItems()){
         }
-        NioServer.getServerSe().getMessage().clear();
     }
 
 }

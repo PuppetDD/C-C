@@ -20,7 +20,6 @@ public class NioServer extends Thread {
     private static ServerSend serverSe = new ServerSend();
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
-    private Boolean stop = false;
 
     public NioServer() {
         try {
@@ -37,7 +36,7 @@ public class NioServer extends Thread {
 
     @Override
     public void run() {
-        while (!stop) {
+        while (true) {
             try {
                 selector.select(1000);
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
@@ -46,16 +45,7 @@ public class NioServer extends Thread {
                 while (iterator.hasNext()) {
                     key = iterator.next();
                     iterator.remove();
-                    try {
-                        HandleKey(key);
-                    } catch (Exception e) {
-                        key.cancel();
-                        try {
-                            key.channel().close();
-                        } catch (Exception e1) {
-
-                        }
-                    }
+                    HandleKey(key);
                 }
             } catch (IOException e) {
                 serverRe.getRetext().appendText("Nobody connect\n");
@@ -63,24 +53,34 @@ public class NioServer extends Thread {
         }
     }
 
-    private void HandleKey(SelectionKey key) throws IOException {
-        if (key.isValid()) {
-            SocketChannel client = (SocketChannel) key.channel();
-            if (key.isAcceptable()) {
-                if (client.finishConnect()) {
-                    client.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                    Adduser(client);
-                } else {
-                    System.out.println("Client connecting failed");
+    private void HandleKey(SelectionKey key) {
+        try {
+            if (key.isValid()) {
+                if (key.isAcceptable()) {
+                    ServerSocketChannel server = (ServerSocketChannel) key.channel();
+                    SocketChannel client=server.accept();
+                    if (client.finishConnect()) {
+                        client.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                        HandleAccept(client);
+                    } else {
+                        System.out.println("Client connecting failed");
+                    }
+                }
+                if (key.isReadable()) {
+                    HandleRead(key);
                 }
             }
-            if (key.isReadable()) {
+        } catch (Exception e) {
+            key.cancel();
+            try {
+                key.channel().close();
+            } catch (Exception e1) {
 
             }
         }
     }
 
-    public void Adduser(SocketChannel client) {
+    public void HandleAccept(SocketChannel client) {
         try {
             Platform.runLater(new Runnable() {
                 @Override
@@ -109,8 +109,12 @@ public class NioServer extends Thread {
         }
     }
 
-    public void Stop() {
-        stop = true;
+    public void HandleRead(SelectionKey key){
+        SocketChannel client=(SocketChannel)key.channel();
+    }
+
+    public void HandleWrite(SelectionKey key){
+
     }
 
     public static SeverRecevied getServerRe() {

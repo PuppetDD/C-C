@@ -47,10 +47,6 @@ public class Client extends Application {
                 clientRe.getRetext().appendText("Connect "+socket.getRemoteSocketAddress()+" successfully\n");
                 clientSe.getTextip().setText(socket.getLocalAddress().toString());
                 clientSe.getTextport().setText(String.valueOf(socket.getLocalPort()));
-                /*Send send=new Send(socket,clientSe);
-                send.start();
-                Read read=new Read(socket,clientRe,clientSe);
-                read.start();*/
             }catch (Exception ex){
                 clientRe.getRetext().appendText("Connect failed....\n");
                 clientSe.getConnect().setText("Reconnect");
