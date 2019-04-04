@@ -65,6 +65,4 @@ public class ClientSend extends VBox {
 
     public Button getSend(){ return send; }
 
-
-
 }
