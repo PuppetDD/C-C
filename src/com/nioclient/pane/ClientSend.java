@@ -24,7 +24,7 @@ public class ClientSend extends VBox {
     private Button connect =new Button("Connect");
     private Button send =new Button("Send");
 
-    public ClientSend(String s){
+    public ClientSend(){
         GridPane grid=new GridPane();
         textip.setEditable(false);
         textport.setEditable(false);

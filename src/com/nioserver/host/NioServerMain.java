@@ -11,8 +11,6 @@ import java.nio.channels.SocketChannel;
 
 public class NioServerMain extends Application {
 
-    private PrintWriter printWriter;
-
     public static void main(String[] args) {
         launch(args);
     }
