@@ -1,7 +1,7 @@
 package com.thread;
 
-import com.pane.ReceviedPane;
-import com.pane.SendPane;
+import com.nioserver.pane.SeverRecevied;
+import com.nioserver.pane.ServerSend;
 import javafx.application.Platform;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,15 +10,15 @@ import java.net.Socket;
 
 public class Read extends Thread {
 
-    private ReceviedPane receviedPane;
-    private SendPane sendPane;
+    private SeverRecevied severRecevied;
+    private ServerSend serverSend;
     private Socket socket;
     private BufferedReader bufferedReader;
     private String str = null;
 
-    public Read(Socket socket, ReceviedPane receviedPane, SendPane sendPane){
-        this.receviedPane=receviedPane;
-        this.sendPane=sendPane;
+    public Read(Socket socket, SeverRecevied severRecevied, ServerSend serverSend){
+        this.severRecevied = severRecevied;
+        this.serverSend = serverSend;
         this.socket = socket;
     }
 
@@ -28,22 +28,22 @@ public class Read extends Thread {
             try {
                 socket.sendUrgentData(0xFF);
             } catch (Exception e) {
-                SendPane.count--;
+                ServerSend.count--;
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
-                        sendPane.getConnect().setText("Connect");
-                        sendPane.getItems().remove(socket);
-                        sendPane.getStatus().setText(SendPane.count+" Connecting");
+                        serverSend.getBegin().setText("Connect");
+                        serverSend.getItems().remove(socket);
+                        serverSend.getStatus().setText(ServerSend.count+" Connecting");
                     }
                 });
-                receviedPane.getRetext().appendText("Disconnect from "+socket.getRemoteSocketAddress()+"\n");
+                severRecevied.getRetext().appendText("Disconnect from "+socket.getRemoteSocketAddress()+"\n");
                 return;
             }
             try {
                 bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 while((str = bufferedReader.readLine())!=null){
-                    receviedPane.getRetext().appendText(str+"\n");
+                    severRecevied.getRetext().appendText(str+"\n");
                 }
             } catch (IOException e) {
 
