@@ -33,8 +33,12 @@ public class NioClientMain extends Application {
                 String s = NioClient.getClientSe().getConnect().getText();
                 String ip = NioClient.getClientSe().getTextip().getText();
                 if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0  ) {
-                    c= new NioClient(ip, Integer.valueOf(port));
-                    c.start();
+                    try {
+                        c = new NioClient(ip, Integer.valueOf(port));
+                        c.start();
+                    }catch (Exception e1){
+                        NioClient.getClientRe().getRetext().appendText("Input message error\n");
+                    }
                 }else{
                     c.setStop();
                     NioClient.getClientSe().getConnect().setText("Connect");

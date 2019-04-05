@@ -36,22 +36,10 @@ public class NioClient extends Thread {
         this.stop = false;
         try {
             selector = Selector.open();
-            socketChannel = SocketChannel.open(new InetSocketAddress(this.ip, this.port));
+            socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-            socketChannel.register(selector, SelectionKey.OP_READ);
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    clientSe.getConnect().setText("Disconnect");
-                }
-            });
-            clientRe.getRetext().appendText("Connect " + socketChannel.getRemoteAddress() + " successfully\n");
-            clientSe.getTextip().clear();
-            clientSe.getTextip().setText(socketChannel.socket().getLocalAddress().toString());
-            clientSe.getTextport().clear();
-            clientSe.getTextport().setText(String.valueOf(socketChannel.socket().getLocalPort()));
-            clientSe.getTextip().setEditable(false);
-            clientSe.getTextport().setEditable(false);
+            socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            System.out.println("Connect succeed");
         } catch (IOException e) {
             if (selector != null) {
                 try {
@@ -60,19 +48,12 @@ public class NioClient extends Thread {
                     ex.printStackTrace();
                 }
             }
-            this.stop = true;
-            clientRe.getRetext().appendText("Connect failed....\n");
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    clientSe.getConnect().setText("Reconnect");
-                }
-            });
         }
     }
 
     @Override
     public void run() {
+        connect();
         while (!stop) {
             try {
                 selector.select(1000);
@@ -80,9 +61,31 @@ public class NioClient extends Thread {
                 Iterator<SelectionKey> iterator = set.iterator();
                 SelectionKey key = null;
                 while (iterator.hasNext()) {
+                    System.out.println("hasnext");
                     key = iterator.next();
                     iterator.remove();
-                    handleKey(key);
+                    try {
+                        handleKey(key);
+                    } catch (Exception e) {
+                        System.out.println("Read3");
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                clientSe.getConnect().setText("Connect");
+                            }
+                        });
+                        String s = socketChannel.getRemoteAddress().toString();
+                        clientRe.getRetext().appendText("Disconnect from " + s + "\n");
+                        clientSe.getTextip().setEditable(true);
+                        clientSe.getTextport().setEditable(true);
+                        clientSe.getTextip().setText(null);
+                        clientSe.getTextport().setText(null);
+                        key.cancel();
+                        try {
+                            key.channel().close();
+                        } catch (Exception e1) {
+                        }
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -90,59 +93,103 @@ public class NioClient extends Thread {
         }
         try {
             selector.close();
-            if(socketChannel!=null){
-                clientRe.getRetext().appendText("Disconnect from "+socketChannel.getRemoteAddress()+"\n");
+            if (socketChannel != null) {
+                String s = socketChannel.getRemoteAddress().toString();
+                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
                 socketChannel.close();
             }
 
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return;
     }
 
-    private void handleKey(SelectionKey key) {
+    private void connect() {
         try {
-            if (key.isValid()) {
-                SocketChannel socket = (SocketChannel) key.channel();
-                if (key.isConnectable()) {
-                    //处于连接状态
-                    if (socket.finishConnect()) {
-                        //客户端连接成功
+            if (socketChannel.connect(new InetSocketAddress(ip, port))) {
+                socketChannel.register(selector, SelectionKey.OP_READ);
+                //发送请求消息 读应答
+                handleWrite(socketChannel);
+            } else {//如果直连接连接未成功，则注册到多路复用器上，并注册SelectionKey.OP_CONNECT操作
+                System.out.println("OP_CONNECT");
+                socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-                        //doWrite(socket);
-                    } else {//连接失败
-                        System.exit(1);
-                    }
-                }
-                if (key.isReadable()) {
-                    //如果客户端接收到了服务器端发送的应答消息 则SocketChannel是可读的
-                    ByteBuffer bf = ByteBuffer.allocate(1024);
-                    int bytes = socket.read(bf);
-                    if (bytes > 0) {
-                        bf.flip();
-                        byte[] byteArray = new byte[bf.remaining()];
-                        bf.get(byteArray);
-                        String resopnseMessage = new String(byteArray, "UTF-8");
-                        System.out.println("=======The response message is：" + resopnseMessage);
-                        this.stop = true;
-                    } else if (bytes < 0) {
-                        key.cancel();
-                        socket.close();
-                    }
+    private void handleKey(SelectionKey key) throws IOException {
+        if (key.isValid()) {
+            System.out.println("Valid");
+            if (key.isConnectable()) {
+                SocketChannel client = (SocketChannel) key.channel();
+                if (client.finishConnect()) {
+                    //客户端连接成功
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            clientSe.getConnect().setText("Disconnect");
+                        }
+                    });
+                    clientRe.getRetext().appendText("Connect " + socketChannel.getRemoteAddress() + " successfully\n");
+                    clientSe.getTextip().clear();
+                    clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
+                    clientSe.getTextport().clear();
+                    clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
+                    clientSe.getTextip().setEditable(false);
+                    clientSe.getTextport().setEditable(false);
+                    client.register(selector, SelectionKey.OP_READ);
+                    handleWrite(client);
+                } else { //连接失败
+                    System.exit(1);
                 }
             }
-        } catch (Exception e) {
-            key.cancel();
-            try {
-                key.channel().close();
-            } catch (Exception e1) {
-
+            if (key.isReadable()) {
+                //如果客户端接收到了服务器端发送的应答消息 则SocketChannel是可读的
+                handleRead(key);
             }
         }
     }
 
-    public  void setStop() {
+    private void handleRead(SelectionKey key) throws IOException {
+        System.out.println("Read");
+        SocketChannel client = (SocketChannel) key.channel();
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int bytes = client.read(buffer);
+        if (bytes > 0) {
+            System.out.println("Read2");
+            buffer.flip();
+            byte[] byteArray = new byte[buffer.remaining()];
+            buffer.get(byteArray);
+            String response = new String(byteArray, "UTF-8");
+            System.out.println("=======The response message is：" + response);
+            this.stop = true;
+        } else if (bytes < 0) {
+            key.cancel();
+            client.close();
+        }
+    }
+
+    private void handleWrite(SocketChannel client) throws IOException {
+        System.out.println("Write");
+        if (client.finishConnect()) {
+            //客户端连接成功
+            byte[] request = "request message from client".getBytes();
+            ByteBuffer buffer = ByteBuffer.allocate(request.length);
+            buffer.put(request);
+            buffer.flip();
+            client.write(buffer);
+            if (!buffer.hasRemaining()) {
+                //如果缓冲区里面的所有内容全部发送完毕
+                System.out.println("=======client send requst message to server successed!");
+            }
+        } else {//连接失败
+            System.exit(1);
+        }
+    }
+
+    public void setStop() {
         this.stop = true;
     }
 
