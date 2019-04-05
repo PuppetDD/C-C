@@ -11,6 +11,8 @@ import java.nio.channels.SocketChannel;
 
 public class NioServerMain extends Application {
 
+    private NioServer s;
+
     public static void main(String[] args) {
         launch(args);
     }
@@ -29,8 +31,17 @@ public class NioServerMain extends Application {
             System.exit(0);
         });
         NioServer.getServerSe().getBegin().setOnAction(e->{
-            NioServer s=new NioServer();
-            s.start();
+            String str=NioServer.getServerSe().getBegin().getText();
+            if(str.compareTo("Begin")==0){
+                NioServer.getServerSe().getBegin().setText("Finish");
+                s=new NioServer();
+                s.start();
+            }else{
+                s.setStop();
+                NioServer.getServerSe().getBegin().setText("Begin");
+                NioServer.getServerSe().getTextip().setText(null);
+                NioServer.getServerSe().getTextport().setText(null);
+            }
         });
         primaryStage.show();
     }

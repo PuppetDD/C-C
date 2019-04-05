@@ -13,9 +13,9 @@ import java.nio.channels.SocketChannel;
 public class ClientSend extends VBox {
 
     private Label ipaddress =new Label("IPAddress:");
-    private TextField textip =new TextField();
+    private TextField textip =new TextField(null);
     private Label port =new Label("Port:");
-    private TextField textport =new TextField();
+    private TextField textport =new TextField(null);
     private Label online =new Label("Online Client:");
     private ListView<SocketChannel> list = new ListView<>();
     private ObservableList<SocketChannel> items = FXCollections.observableArrayList ();
@@ -26,8 +26,6 @@ public class ClientSend extends VBox {
 
     public ClientSend(){
         GridPane grid=new GridPane();
-        textip.setEditable(false);
-        textport.setEditable(false);
         grid.setHgap(20);
         grid.setVgap(10);
         grid.add(ipaddress,0,0);
@@ -36,14 +34,16 @@ public class ClientSend extends VBox {
         grid.add(textport,1,1);
         list.setMaxWidth(350);
         list.setMinWidth(350);
+        message.setMaxWidth(350);
+        message.setMinWidth(350);
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         connect.setMaxSize(100,30);
         connect.setMinSize(100,30);
-        send.setMaxSize(70,30);
-        send.setMinSize(70,30);
+        send.setMaxSize(100,30);
+        send.setMinSize(100,30);
         HBox h=new HBox();
-        h.setPadding(new Insets(20, 40, 20, 40));
-        h.setSpacing(80);
+        h.setPadding(new Insets(20, 20, 20, 20));
+        h.setSpacing(100);
         list.setMaxHeight(100);
         list.setMinHeight(100);
         h.getChildren().addAll(connect, send);
@@ -51,18 +51,32 @@ public class ClientSend extends VBox {
         this.setSpacing(20);
     }
 
-    public TextField getTextip(){ return textip; }
+    public TextField getTextip(){
+        return textip;
+    }
 
-    public TextField getTextport(){ return textport; }
+    public TextField getTextport(){
+        return textport;
+    }
 
-    public ListView<SocketChannel> getList(){  return list; }
+    public ListView<SocketChannel> getList(){
+        return list;
+    }
 
-    public  ObservableList<SocketChannel> getItems(){ return items; }
+    public  ObservableList<SocketChannel> getItems(){
+        return items;
+    }
 
-    public TextArea getMessage(){ return message; }
+    public TextArea getMessage(){
+        return message;
+    }
 
-    public Button getConnect(){ return connect; }
+    public Button getConnect(){
+        return connect;
+    }
 
-    public Button getSend(){ return send; }
+    public Button getSend(){
+        return send;
+    }
 
 }

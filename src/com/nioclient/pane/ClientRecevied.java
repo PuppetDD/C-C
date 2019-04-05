@@ -16,6 +16,8 @@ public class ClientRecevied extends VBox {
         this.setSpacing(15);
     }
 
-    public TextArea getRetext(){ return retext; }
+    public TextArea getRetext(){
+        return retext;
+    }
 
 }

@@ -4,18 +4,20 @@ import javafx.scene.layout.VBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 
-public class SeverRecevied extends VBox {
+public class ServerRecevied extends VBox {
 
     private Label re=new Label("Received Message:");;
     private TextArea retext=new TextArea();
 
-    public SeverRecevied(){
+    public ServerRecevied(){
         retext.setMinSize(300,430);
         retext.setEditable(false);
         this.getChildren().addAll(re,retext);
         this.setSpacing(15);
     }
 
-    public TextArea getRetext(){ return retext; }
+    public TextArea getRetext(){
+        return retext;
+    }
 
 }

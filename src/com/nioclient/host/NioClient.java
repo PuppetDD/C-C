@@ -2,6 +2,7 @@ package com.nioclient.host;
 
 import com.nioclient.pane.ClientRecevied;
 import com.nioclient.pane.ClientSend;
+import javafx.application.Platform;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -31,67 +32,76 @@ public class NioClient extends Thread {
 
     public NioClient(String ip, int port) {
         this.ip = ip == null ? "127.0.0.1" : ip;
-        this.port = port;
+        this.port = 9999;
+        this.stop = false;
         try {
             selector = Selector.open();
-            socketChannel = SocketChannel.open();
+            socketChannel = SocketChannel.open(new InetSocketAddress(this.ip, this.port));
             socketChannel.configureBlocking(false);
+            socketChannel.register(selector, SelectionKey.OP_READ);
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    clientSe.getConnect().setText("Disconnect");
+                }
+            });
+            clientRe.getRetext().appendText("Connect " + socketChannel.getRemoteAddress() + " successfully\n");
+            clientSe.getTextip().clear();
+            clientSe.getTextip().setText(socketChannel.socket().getLocalAddress().toString());
+            clientSe.getTextport().clear();
+            clientSe.getTextport().setText(String.valueOf(socketChannel.socket().getLocalPort()));
+            clientSe.getTextip().setEditable(false);
+            clientSe.getTextport().setEditable(false);
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Client error");
+            if (selector != null) {
+                try {
+                    selector.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            this.stop = true;
+            clientRe.getRetext().appendText("Connect failed....\n");
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    clientSe.getConnect().setText("Reconnect");
+                }
+            });
         }
     }
 
     @Override
     public void run() {
-        connect();
         while (!stop) {
             try {
-                //休眠1秒  无论是否有读写事件发生 selector每隔1秒被唤醒
                 selector.select(1000);
-                //获取注册在selector上的所有的就绪状态的serverSocketChannel中发生的事件
                 Set<SelectionKey> set = selector.selectedKeys();
                 Iterator<SelectionKey> iterator = set.iterator();
                 SelectionKey key = null;
                 while (iterator.hasNext()) {
                     key = iterator.next();
                     iterator.remove();
-
+                    handleKey(key);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-                System.exit(1);
             }
         }
-        if (selector != null) {
-            try {
-                selector.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    public void connect() {
         try {
-            if (socketChannel.connect(new InetSocketAddress(ip, port))) {
-                socketChannel.register(selector, SelectionKey.OP_READ);
-                //发送请求消息 读应答
-                //doWrite(socketChannel);
-                clientRe.getRetext().appendText("Connect " + socketChannel.getRemoteAddress() + " successfully\n");
-                clientSe.getTextip().setText(socketChannel.getLocalAddress().toString());
-                clientSe.getTextport().setText(String.valueOf(port));
-            } else {//如果直连接连接未成功，则注册到多路复用器上，并注册SelectionKey.OP_CONNECT操作
-                socketChannel.register(selector, SelectionKey.OP_CONNECT);
+            selector.close();
+            if(socketChannel!=null){
+                clientRe.getRetext().appendText("Disconnect from "+socketChannel.getRemoteAddress()+"\n");
+                socketChannel.close();
             }
-        } catch (IOException e) {
-            clientRe.getRetext().appendText("Connect failed....\n");
-            clientSe.getConnect().setText("Reconnect");
-            e.printStackTrace();
+
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
+        return;
     }
 
-    private void HandleKey(SelectionKey key) {
+    private void handleKey(SelectionKey key) {
         try {
             if (key.isValid()) {
                 SocketChannel socket = (SocketChannel) key.channel();
@@ -99,9 +109,9 @@ public class NioClient extends Thread {
                     //处于连接状态
                     if (socket.finishConnect()) {
                         //客户端连接成功
-                        socket.register(selector, SelectionKey.OP_READ);
+
                         //doWrite(socket);
-                    } else { //连接失败
+                    } else {//连接失败
                         System.exit(1);
                     }
                 }
@@ -130,6 +140,10 @@ public class NioClient extends Thread {
 
             }
         }
+    }
+
+    public  void setStop() {
+        this.stop = true;
     }
 
     public static ClientRecevied getClientRe() {

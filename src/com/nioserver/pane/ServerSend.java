@@ -41,8 +41,8 @@ public class ServerSend extends VBox {
         status.setMaxSize(100,30);
         status.setMinSize(100,30);
         HBox h=new HBox();
-        h.setPadding(new Insets(20, 40, 20, 40));
-        h.setSpacing(80);
+        h.setPadding(new Insets(20, 20, 20, 20));
+        h.setSpacing(100);
         h.getChildren().addAll(begin, status);
         this.getChildren().addAll(grid, online, list, h);
         this.setSpacing(20);
@@ -56,14 +56,20 @@ public class ServerSend extends VBox {
         return textport;
     }
 
-    public ListView<SocketChannel> getList(){  return list; }
+    public ListView<SocketChannel> getList(){
+        return list;
+    }
 
-    public  ObservableList<SocketChannel> getItems(){ return items; }
+    public  ObservableList<SocketChannel> getItems(){
+        return items;
+    }
 
     public Button getBegin(){
         return begin;
     }
 
-    public Label getStatus(){ return  status; }
+    public Label getStatus(){
+        return  status;
+    }
 
 }

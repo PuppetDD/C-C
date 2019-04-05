@@ -1,6 +1,6 @@
 package com.nioserver.host;
 
-import com.nioserver.pane.SeverRecevied;
+import com.nioserver.pane.ServerRecevied;
 import com.nioserver.pane.ServerSend;
 import javafx.application.Platform;
 
@@ -16,27 +16,32 @@ import java.util.Set;
 
 public class NioServer extends Thread {
 
-    private static SeverRecevied serverRe = new SeverRecevied();
+    private static ServerRecevied serverRe = new ServerRecevied();
     private static ServerSend serverSe = new ServerSend();
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
+    private Boolean stop;
 
     public NioServer() {
         try {
+            this.stop=false;
             selector = Selector.open();
             serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.socket().bind(new InetSocketAddress(9999), 1024);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
             serverRe.getRetext().appendText("Waiting for Connecting...\n");
+            serverSe.getTextip().setText(serverSocketChannel.socket().getInetAddress().toString());
+            serverSe.getTextport().setText(String.valueOf(serverSocketChannel.socket().getLocalPort()));
         } catch (IOException e) {
             serverRe.getRetext().appendText("Server Startup Failure\n");
+            this.stop=true;
         }
     }
 
     @Override
     public void run() {
-        while (true) {
+        while (!stop) {
             try {
                 selector.select(1000);
                 Set<SelectionKey> selectionKeys = selector.selectedKeys();
@@ -45,29 +50,34 @@ public class NioServer extends Thread {
                 while (iterator.hasNext()) {
                     key = iterator.next();
                     iterator.remove();
-                    HandleKey(key);
+                    handleKey(key);
                 }
             } catch (IOException e) {
                 serverRe.getRetext().appendText("Nobody connect\n");
             }
         }
+        try {
+            serverRe.getRetext().appendText("Server close\n");
+            selector.close();
+            serverSocketChannel.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return;
     }
 
-    private void HandleKey(SelectionKey key) {
+    private void handleKey(SelectionKey key) {
         try {
             if (key.isValid()) {
                 if (key.isAcceptable()) {
                     ServerSocketChannel server = (ServerSocketChannel) key.channel();
                     SocketChannel client=server.accept();
-                    if (client.finishConnect()) {
-                        client.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
-                        HandleAccept(client);
-                    } else {
-                        System.out.println("Client connecting failed");
-                    }
+                    client.configureBlocking(false);
+                    client.register(selector, SelectionKey.OP_READ | SelectionKey.OP_WRITE);
+                    handleAccept(client);
                 }
                 if (key.isReadable()) {
-                    HandleRead(key);
+                    handleRead(key);
                 }
             }
         } catch (Exception e) {
@@ -80,7 +90,7 @@ public class NioServer extends Thread {
         }
     }
 
-    public void HandleAccept(SocketChannel client) {
+    public void handleAccept(SocketChannel client) {
         try {
             Platform.runLater(new Runnable() {
                 @Override
@@ -92,7 +102,7 @@ public class NioServer extends Thread {
             SocketAddress address = client.getRemoteAddress();
             ServerSend.count++;
             serverRe.getRetext().appendText("Connected from  " + address + "\n");
-            serverRe.getRetext().appendText(ServerSend.count + " nioclient connect successfully\n");
+            serverRe.getRetext().appendText(ServerSend.count + " client connect successfully\n");
             Platform.runLater(new Runnable() {
                 @Override
                 public void run() {
@@ -102,22 +112,21 @@ public class NioServer extends Thread {
         } catch (Exception ex) {
             serverRe.getRetext().appendText("Connected failed\n");
         }
-        try {
-            sleep(300);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-    public void HandleRead(SelectionKey key){
+    public void handleRead(SelectionKey key){
         SocketChannel client=(SocketChannel)key.channel();
     }
 
-    public void HandleWrite(SelectionKey key){
+    public void handleWrite(SelectionKey key){
 
     }
 
-    public static SeverRecevied getServerRe() {
+    public void setStop(){
+        this.stop=true;
+    }
+
+    public static ServerRecevied getServerRe() {
         return serverRe;
     }
 
