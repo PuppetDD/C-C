@@ -16,8 +16,8 @@ public class ServerSend extends VBox {
     private Label port =new Label("Port:");
     private TextField textport =new TextField();
     private Label online =new Label("Online Client:");
-    private ListView<SocketChannel> list = new ListView<>();
-    private ObservableList<SocketChannel> items = FXCollections.observableArrayList ();
+    private ListView<String> list = new ListView<>();
+    private ObservableList<String> items = FXCollections.observableArrayList ();
     private Button begin =new Button("Begin");
     private Label status=new Label("0 Connecting");
     public static int count=0;
@@ -55,11 +55,11 @@ public class ServerSend extends VBox {
         return textport;
     }
 
-    public ListView<SocketChannel> getList(){
+    public ListView<String> getList(){
         return list;
     }
 
-    public  ObservableList<SocketChannel> getItems(){
+    public  ObservableList<String> getItems(){
         return items;
     }
 

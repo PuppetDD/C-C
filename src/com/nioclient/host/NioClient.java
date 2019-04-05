@@ -67,19 +67,6 @@ public class NioClient extends Thread {
                     try {
                         handleKey(key);
                     } catch (Exception e) {
-                        System.out.println("Read3");
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                clientSe.getConnect().setText("Connect");
-                            }
-                        });
-                        String s = socketChannel.getRemoteAddress().toString();
-                        clientRe.getRetext().appendText("Disconnect from " + s + "\n");
-                        clientSe.getTextip().setEditable(true);
-                        clientSe.getTextport().setEditable(true);
-                        clientSe.getTextip().setText(null);
-                        clientSe.getTextport().setText(null);
                         key.cancel();
                         try {
                             key.channel().close();
@@ -145,9 +132,30 @@ public class NioClient extends Thread {
                     System.exit(1);
                 }
             }
-            if (key.isReadable()) {
-                //如果客户端接收到了服务器端发送的应答消息 则SocketChannel是可读的
-                handleRead(key);
+            try {
+                if (key.isReadable()) {
+                    //如果客户端接收到了服务器端发送的应答消息 则SocketChannel是可读的
+                    handleRead(key);
+                }
+            } catch (Exception e) {
+                System.out.println("Read3");
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        clientSe.getConnect().setText("Connect");
+                    }
+                });
+                String s = socketChannel.getRemoteAddress().toString();
+                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
+                clientSe.getTextip().setEditable(true);
+                clientSe.getTextport().setEditable(true);
+                clientSe.getTextip().setText(null);
+                clientSe.getTextport().setText(null);
+                key.cancel();
+                try {
+                    key.channel().close();
+                } catch (Exception e1) {
+                }
             }
         }
     }
@@ -166,6 +174,7 @@ public class NioClient extends Thread {
             System.out.println("=======The response message is：" + response);
             this.stop = true;
         } else if (bytes < 0) {
+            System.out.println("Read4");
             key.cancel();
             client.close();
         }
@@ -175,7 +184,7 @@ public class NioClient extends Thread {
         System.out.println("Write");
         if (client.finishConnect()) {
             //客户端连接成功
-            byte[] request = "request message from client".getBytes();
+            byte[] request = "user1,1000".getBytes();
             ByteBuffer buffer = ByteBuffer.allocate(request.length);
             buffer.put(request);
             buffer.flip();

@@ -46,9 +46,4 @@ public class NioServerMain extends Application {
         primaryStage.show();
     }
 
-    public void groupSend(){
-        for(SocketChannel sc: NioServer.getServerSe().getList().getSelectionModel().getSelectedItems()){
-        }
-    }
-
 }
