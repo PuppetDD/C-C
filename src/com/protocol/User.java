@@ -13,6 +13,21 @@ public class User {
     private String ip;
     private int port;
     private int vport;
+    private String status;
+
+    @Override
+    public String toString() {
+        if (name == null && ip == null) {
+            return null;
+        }
+        String s = name + "," + ip + "," + String.valueOf(vport) + "," + String.valueOf(port);
+        return s;
+    }
+
+    public String uniqueName() {
+        String s = name + ":" + vport + "  [" + status + "]";
+        return s;
+    }
 
     public String getName() {
         return name;
@@ -44,5 +59,13 @@ public class User {
 
     public void setVport(int vport) {
         this.vport = vport;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

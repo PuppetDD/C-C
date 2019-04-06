@@ -29,17 +29,17 @@ public class NioClientMain extends Application {
         });
         NioClient.getClientSe().getConnect().setOnAction(e -> {
             String port = NioClient.getClientSe().getTextport().getText();
-            if(port!=null){
+            if (port != null) {
                 String s = NioClient.getClientSe().getConnect().getText();
                 String ip = NioClient.getClientSe().getTextip().getText();
-                if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0  ) {
+                if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0) {
                     try {
                         c = new NioClient(ip, Integer.valueOf(port));
                         c.start();
-                    }catch (Exception e1){
+                    } catch (Exception e1) {
                         NioClient.getClientRe().getRetext().appendText("Input message error\n");
                     }
-                }else{
+                } else {
                     c.setStop();
                     NioClient.getClientSe().getConnect().setText("Connect");
                     NioClient.getClientSe().getTextip().setEditable(true);

@@ -2,14 +2,17 @@ package com.nioclient.host;
 
 import com.nioclient.pane.ClientRecevied;
 import com.nioclient.pane.ClientSend;
+import com.protocol.User;
 import javafx.application.Platform;
-
+import javafx.collections.ObservableList;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -24,6 +27,7 @@ public class NioClient extends Thread {
 
     private static ClientRecevied clientRe = new ClientRecevied();
     private static ClientSend clientSe = new ClientSend();
+    private ArrayList<User> list = new ArrayList<User>();
     private String ip;
     private int port;
     private Selector selector;
@@ -61,7 +65,6 @@ public class NioClient extends Thread {
                 Iterator<SelectionKey> iterator = set.iterator();
                 SelectionKey key = null;
                 while (iterator.hasNext()) {
-                    System.out.println("hasnext");
                     key = iterator.next();
                     iterator.remove();
                     try {
@@ -71,6 +74,7 @@ public class NioClient extends Thread {
                         try {
                             key.channel().close();
                         } catch (Exception e1) {
+                            e1.printStackTrace();
                         }
                     }
                 }
@@ -78,14 +82,13 @@ public class NioClient extends Thread {
                 e.printStackTrace();
             }
         }
-        try {
+        try {//正常关闭client
             selector.close();
             if (socketChannel != null) {
                 String s = socketChannel.getRemoteAddress().toString();
                 clientRe.getRetext().appendText("Disconnect from " + s + "\n");
                 socketChannel.close();
             }
-
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -97,8 +100,18 @@ public class NioClient extends Thread {
                 socketChannel.register(selector, SelectionKey.OP_READ);
                 //发送请求消息 读应答
                 handleWrite(socketChannel);
-            } else {//如果直连接连接未成功，则注册到多路复用器上，并注册SelectionKey.OP_CONNECT操作
-                System.out.println("OP_CONNECT");
+            } else {
+                //如果直连接连接未成功，则注册到多路复用器上，并注册SelectionKey.OP_CONNECT操作
+                System.out.println("Register OP_CONNECT");
+                ObservableList<String> t = clientSe.getItems();
+                for (String s : t) {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            clientSe.getItems().remove(s);
+                        }
+                    });
+                }
                 socketChannel.register(selector, SelectionKey.OP_CONNECT);
             }
         } catch (IOException e) {
@@ -107,94 +120,163 @@ public class NioClient extends Thread {
     }
 
     private void handleKey(SelectionKey key) throws IOException {
+        System.out.println("handleKey");
         if (key.isValid()) {
-            System.out.println("Valid");
             if (key.isConnectable()) {
                 SocketChannel client = (SocketChannel) key.channel();
                 if (client.finishConnect()) {
                     //客户端连接成功
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            clientSe.getConnect().setText("Disconnect");
-                        }
-                    });
-                    clientRe.getRetext().appendText("Connect " + socketChannel.getRemoteAddress() + " successfully\n");
-                    clientSe.getTextip().clear();
-                    clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
-                    clientSe.getTextport().clear();
-                    clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
-                    clientSe.getTextip().setEditable(false);
-                    clientSe.getTextport().setEditable(false);
                     client.register(selector, SelectionKey.OP_READ);
                     handleWrite(client);
-                } else { //连接失败
+                } else {
+                    //连接失败
                     System.exit(1);
                 }
             }
             try {
                 if (key.isReadable()) {
-                    //如果客户端接收到了服务器端发送的应答消息 则SocketChannel是可读的
                     handleRead(key);
                 }
             } catch (Exception e) {
-                System.out.println("Read3");
-                Platform.runLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        clientSe.getConnect().setText("Connect");
-                    }
-                });
-                String s = socketChannel.getRemoteAddress().toString();
-                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
-                clientSe.getTextip().setEditable(true);
-                clientSe.getTextport().setEditable(true);
-                clientSe.getTextip().setText(null);
-                clientSe.getTextport().setText(null);
-                key.cancel();
-                try {
-                    key.channel().close();
-                } catch (Exception e1) {
-                }
+                //服务器异常退出
+                System.out.println("Logout exception\n");
+                disConnect(key);
             }
         }
     }
 
     private void handleRead(SelectionKey key) throws IOException {
-        System.out.println("Read");
+        System.out.println("handleRead");
+        for (User user : list) {
+            System.out.println(user.toString());
+        }
         SocketChannel client = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(1024);
+        ByteBuffer line = ByteBuffer.allocate(1024);
         int bytes = client.read(buffer);
         if (bytes > 0) {
-            System.out.println("Read2");
             buffer.flip();
-            byte[] byteArray = new byte[buffer.remaining()];
-            buffer.get(byteArray);
-            String response = new String(byteArray, "UTF-8");
-            System.out.println("=======The response message is：" + response);
-            this.stop = true;
+            while (buffer.hasRemaining()) {
+                byte b = buffer.get();
+                if (b == 10 || b == 13) {
+                    line.flip();
+                    String user = Charset.forName("utf-8").decode(line).toString();
+                    String[] attribute = user.split(",");
+                    int port = client.socket().getLocalPort();
+                    try {
+                        update(attribute, port);
+                    } catch (Exception e) {
+                        System.out.println("Format error" + user);
+                    }
+                    System.out.println("Buffer Message:");
+                    for (int i = 0; i < attribute.length; i++) {
+                        System.out.print(attribute[i] + " ");
+                    }
+                    System.out.println("\n");
+                    line.clear();
+                } else {
+                    line.put(b);
+                }
+            }
+            buffer.clear();
         } else if (bytes < 0) {
-            System.out.println("Read4");
-            key.cancel();
-            client.close();
+            System.out.println("Logout normal\n");
+            disConnect(key);
         }
     }
 
     private void handleWrite(SocketChannel client) throws IOException {
-        System.out.println("Write");
+        //login服务器时调用一次
+        System.out.println("handleWrite\n");
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                clientSe.getConnect().setText("Disconnect");
+            }
+        });
+        clientRe.getRetext().appendText("Connect " + client.getRemoteAddress() + " successfully\n");
+        clientSe.getTextip().clear();
+        clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
+        clientSe.getTextport().clear();
+        clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
+        clientSe.getTextip().setEditable(false);
+        clientSe.getTextport().setEditable(false);
         if (client.finishConnect()) {
             //客户端连接成功
-            byte[] request = "user1,1000".getBytes();
+            byte[] request = "user,1000".getBytes();
             ByteBuffer buffer = ByteBuffer.allocate(request.length);
             buffer.put(request);
             buffer.flip();
             client.write(buffer);
-            if (!buffer.hasRemaining()) {
-                //如果缓冲区里面的所有内容全部发送完毕
-                System.out.println("=======client send requst message to server successed!");
-            }
         } else {//连接失败
+            System.out.println("Connect error");
             System.exit(1);
+        }
+    }
+
+    private void update(String[] attribute, int port) {
+        //更新login，logout用户
+        System.out.println("update");
+        User u = new User();
+        u.setName(attribute[1]);
+        u.setIp(attribute[2]);
+        u.setVport(Integer.valueOf(attribute[3]));
+        u.setPort(Integer.valueOf(attribute[4]));
+        if (attribute[0].compareTo("logout") == 0) {
+            u.setStatus("offline");
+            updateStatus(u);
+        } else {
+            if (port == u.getVport()) {
+                //在线用户列表不用添加自身信息，只执行一次
+                list.add(u);
+            } else {
+                u.setStatus("online");
+                updateStatus(u);
+            }
+        }
+    }
+
+    private void updateStatus(User u) {
+        System.out.println("updateStatus");
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                User temp = new User();
+                for (User user : list) {
+                    if (user.toString().compareTo(u.toString()) == 0) {
+                        //如果本地列表已经有该用户就删除再添加
+                        temp = user;
+                        clientSe.getItems().remove(user.uniqueName());
+                    }
+                }
+                if (temp.toString() != null) {
+                    list.remove(temp);
+                }
+                list.add(u);
+                clientSe.getItems().add(u.uniqueName());
+            }
+        });
+        clientSe.getList().setItems(clientSe.getItems());
+    }
+
+    private void disConnect(SelectionKey key) {
+        SocketChannel client = (SocketChannel) key.channel();
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                clientSe.getConnect().setText("Connect");
+            }
+        });
+        clientSe.getTextip().setEditable(true);
+        clientSe.getTextport().setEditable(true);
+        clientSe.getTextip().setText(null);
+        clientSe.getTextport().setText(null);
+        key.cancel();
+        try {
+            String s = client.getRemoteAddress().toString();
+            clientRe.getRetext().appendText("Disconnect from " + s + "\n");
+            key.channel().close();
+        } catch (Exception e1) {
         }
     }
 

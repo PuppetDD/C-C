@@ -6,9 +6,6 @@ import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-import java.io.PrintWriter;
-import java.nio.channels.SocketChannel;
-
 public class NioServerMain extends Application {
 
     private NioServer s;
@@ -19,10 +16,10 @@ public class NioServerMain extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        HBox hbox=new HBox();
+        HBox hbox = new HBox();
         hbox.getChildren().addAll(NioServer.getServerSe(), NioServer.getServerRe());
         hbox.setSpacing(20);
-        hbox.setPadding(new Insets(20,30,20,30));
+        hbox.setPadding(new Insets(20, 30, 20, 30));
         primaryStage.setTitle("NioServer");
         Scene scene = new Scene(hbox, 800, 500);
         primaryStage.setScene(scene);
@@ -30,13 +27,13 @@ public class NioServerMain extends Application {
         primaryStage.setOnCloseRequest(e -> {
             System.exit(0);
         });
-        NioServer.getServerSe().getBegin().setOnAction(e->{
-            String str=NioServer.getServerSe().getBegin().getText();
-            if(str.compareTo("Begin")==0){
+        NioServer.getServerSe().getBegin().setOnAction(e -> {
+            String str = NioServer.getServerSe().getBegin().getText();
+            if (str.compareTo("Begin") == 0) {
                 NioServer.getServerSe().getBegin().setText("Finish");
-                s=new NioServer();
+                s = new NioServer();
                 s.start();
-            }else{
+            } else {
                 s.setStop();
                 NioServer.getServerSe().getBegin().setText("Begin");
                 NioServer.getServerSe().getTextip().setText(null);
