@@ -29,12 +29,14 @@ public class NioClientMain extends Application {
         });
         NioClient.getClientSe().getConnect().setOnAction(e -> {
             String port = NioClient.getClientSe().getTextport().getText();
-            if (port != null) {
+            String lport = NioClient.getClientSe().getTextlport().getText();
+            if (port != null && lport != null) {
                 String s = NioClient.getClientSe().getConnect().getText();
+                String name = NioClient.getClientSe().getTextname().getText();
                 String ip = NioClient.getClientSe().getTextip().getText();
                 if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0) {
                     try {
-                        c = new NioClient(ip, Integer.valueOf(port));
+                        c = new NioClient(name, ip, Integer.valueOf(port), Integer.valueOf(lport));
                         c.start();
                     } catch (Exception e1) {
                         NioClient.getClientRe().getRetext().appendText("Input error\n");
@@ -42,6 +44,8 @@ public class NioClientMain extends Application {
                 } else {
                     c.setStop();
                 }
+            } else {
+                NioClient.getClientRe().getRetext().appendText("Please enter the necessary information:port\n");
             }
         });
         primaryStage.show();

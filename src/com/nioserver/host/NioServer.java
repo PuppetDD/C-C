@@ -4,6 +4,7 @@ import com.nioserver.pane.ServerRecevied;
 import com.nioserver.pane.ServerSend;
 import com.protocol.User;
 import javafx.application.Platform;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -22,7 +23,7 @@ public class NioServer extends Thread {
     private static ServerSend serverSe = new ServerSend();
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
-    private ArrayList<User> list = new ArrayList<User>();
+    private ArrayList<User> list = new ArrayList<>();
     private Boolean stop;
 
     public NioServer() {
@@ -111,9 +112,9 @@ public class NioServer extends Thread {
             byte[] bytes = new byte[buffer.remaining()];
             buffer.get(bytes);
             String request = new String(bytes, Charset.forName("UTF-8"));
-            String[] name = request.split(",");
+            String[] user = request.split(",");
             //注册login
-            login(key, name[0], name[1]);
+            login(key, user);
             //回包所有的在线用户信息(包括自己)
             response(client);
         } else if (read < 0) {
@@ -152,16 +153,14 @@ public class NioServer extends Thread {
         System.out.print("\n");
     }
 
-    private void login(SelectionKey key, String name, String port) {
+    private void login(SelectionKey key, String[] user) {
         //添加在线客户端,通知所有客户端login消息
         System.out.println("login");
-        SocketChannel client = (SocketChannel) key.channel();
-        String ip = client.socket().getInetAddress().toString();
         User u = new User();
-        u.setName(name);
-        u.setIp(ip.substring(1, ip.length()));
-        u.setVport(client.socket().getPort());
-        u.setPort(Integer.valueOf(port));
+        u.setName(user[0]);
+        u.setIp(user[1]);
+        u.setVport(Integer.valueOf(user[2]));
+        u.setPort(Integer.valueOf(user[3]));
         u.setStatus("online");
         key.attach(u);
         list.add(u);
@@ -178,18 +177,13 @@ public class NioServer extends Thread {
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
-        try {
-            serverRe.getRetext().appendText(client.getRemoteAddress() + " is connected\n");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        serverRe.getRetext().appendText(u.getIp() + ":" + u.getVport() + " is connected\n");
         serverSe.getList().setItems(serverSe.getItems());
     }
 
     private void logout(SelectionKey key) {
         //通知所有在线客户端logout消息
         System.out.println("logout");
-        SocketChannel client = (SocketChannel) key.channel();
         User u = (User) key.attachment();
         list.remove(u);
         update(key, "logout");
@@ -201,10 +195,10 @@ public class NioServer extends Thread {
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
+        serverRe.getRetext().appendText(u.getIp() + ":" + u.getVport() + " is disconnected\n");
         try {
-            serverRe.getRetext().appendText(client.getRemoteAddress() + " is disconnected\n");
             key.cancel();
-            client.close();
+            key.channel().close();
         } catch (IOException e) {
             e.printStackTrace();
         }

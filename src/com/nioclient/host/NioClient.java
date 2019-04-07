@@ -4,6 +4,7 @@ import com.nioclient.pane.ClientRecevied;
 import com.nioclient.pane.ClientSend;
 import com.protocol.User;
 import javafx.application.Platform;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -26,16 +27,20 @@ public class NioClient extends Thread {
 
     private static ClientRecevied clientRe = new ClientRecevied();
     private static ClientSend clientSe = new ClientSend();
-    private ArrayList<User> list = new ArrayList<User>();
+    private ArrayList<User> list = new ArrayList<>();
+    private String name;
     private String ip;
     private int port;
+    private int lport;
     private Selector selector;
     private SocketChannel socketChannel;
     private Boolean stop;
 
-    public NioClient(String ip, int port) {
+    public NioClient(String name, String ip, int port, int lport) {
+        this.name = name == null ? "user" : name;
         this.ip = ip == null ? "127.0.0.1" : ip;
         this.port = 9999;
+        this.lport = 12345;
         this.stop = false;
         try {
             selector = Selector.open();
@@ -84,11 +89,6 @@ public class NioClient extends Thread {
             System.out.println("Active disconnect");
             disConnect(socketChannel.keyFor(selector));
             selector.close();
-//            if (socketChannel != null) {
-//                String s = socketChannel.getRemoteAddress().toString();
-//                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
-//                socketChannel.close();
-//            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -130,6 +130,7 @@ public class NioClient extends Thread {
                         @Override
                         public void run() {
                             clientSe.getConnect().setText("Reconnect");
+                            clientSe.getTextip().setText(null);
                         }
                     });
                     clientRe.getRetext().appendText("The connection fails\n");
@@ -170,7 +171,7 @@ public class NioClient extends Thread {
                     } catch (Exception e) {
                         System.out.println("Format error" + user);
                     }
-                    System.out.println("Buffer Message:");
+                    System.out.println("Receive:");
                     for (int i = 0; i < attribute.length; i++) {
                         System.out.print(attribute[i] + " ");
                     }
@@ -192,7 +193,16 @@ public class NioClient extends Thread {
         System.out.println("handleWrite");
         if (client.finishConnect()) {
             //客户端连接成功
-            byte[] request = "user,1000".getBytes();
+            String ip = client.socket().getInetAddress().toString();
+            User u = new User();
+            u.setName(this.name);
+            u.setIp(ip.substring(1, ip.length()));
+            u.setVport(client.socket().getLocalPort());
+            u.setPort(Integer.valueOf(this.lport));
+            u.setStatus("online");
+            client.keyFor(selector).attach(u);
+            list.add(u);
+            byte[] request = u.toString().getBytes();
             ByteBuffer buffer = ByteBuffer.allocate(request.length);
             buffer.put(request);
             buffer.flip();
@@ -204,12 +214,14 @@ public class NioClient extends Thread {
                 }
             });
             clientRe.getRetext().appendText("Connection to " + client.getRemoteAddress() + " successful\n");
-            clientSe.getTextip().clear();
-            clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
-            clientSe.getTextport().clear();
-            clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
+            clientSe.getTextip().setText(u.getIp());
+            clientSe.getTextport().setText(String.valueOf(u.getVport()));
+            clientSe.getTextname().setText(u.getName());
+            clientSe.getTextlport().setText(String.valueOf(u.getPort()));
             clientSe.getTextip().setEditable(false);
             clientSe.getTextport().setEditable(false);
+            clientSe.getTextname().setEditable(false);
+            clientSe.getTextlport().setEditable(false);
         }
     }
 
@@ -224,14 +236,10 @@ public class NioClient extends Thread {
         if (attribute[0].compareTo("logout") == 0) {
             u.setStatus("offline");
             updateStatus(u);
-        } else {
-            if (port == u.getVport()) {
-                //在线用户列表不用添加自身信息，只执行一次
-                list.add(u);
-            } else {
-                u.setStatus("online");
-                updateStatus(u);
-            }
+        } else if (port != u.getVport()) {
+            //在线用户列表添加非本地用户信息
+            u.setStatus("online");
+            updateStatus(u);
         }
     }
 
@@ -269,6 +277,8 @@ public class NioClient extends Thread {
         });
         clientSe.getTextip().setEditable(true);
         clientSe.getTextport().setEditable(true);
+        clientSe.getTextname().setEditable(true);
+        clientSe.getTextlport().setEditable(true);
         clientSe.getTextip().setText(null);
         clientSe.getTextport().setText(null);
         key.cancel();
