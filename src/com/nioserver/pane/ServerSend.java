@@ -8,6 +8,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+/**
+ * @author GOLD
+ */
 public class ServerSend extends VBox {
 
     private Label ip = new Label("Server IP:");

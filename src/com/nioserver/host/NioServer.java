@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ * @author GOLD
+ */
 public class NioServer extends Thread {
 
     private static ServerRecevied serverRe = new ServerRecevied();

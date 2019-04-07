@@ -6,6 +6,9 @@ import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+/**
+ * @author GOLD
+ */
 public class NioServerMain extends Application {
 
     private NioServer s;

@@ -4,6 +4,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.VBox;
 
+/**
+ * @author GOLD
+ */
 public class ClientRecevied extends VBox {
 
     private Label re = new Label("Message:");
