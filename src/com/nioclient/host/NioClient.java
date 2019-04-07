@@ -6,6 +6,7 @@ import com.protocol.User;
 import javafx.application.Platform;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -27,6 +28,7 @@ public class NioClient extends Thread {
 
     private static ClientRecevied clientRe = new ClientRecevied();
     private static ClientSend clientSe = new ClientSend();
+    private static User lacal;
     private ArrayList<User> list = new ArrayList<>();
     private String name;
     private String ip;
@@ -163,7 +165,7 @@ public class NioClient extends Thread {
                 byte b = buffer.get();
                 if (b == 10 || b == 13) {
                     line.flip();
-                    String user = Charset.forName("utf-8").decode(line).toString();
+                    String user = Charset.forName("UTF-8").decode(line).toString();
                     String[] attribute = user.split(",");
                     int port = client.socket().getLocalPort();
                     try {
@@ -201,8 +203,14 @@ public class NioClient extends Thread {
             u.setPort(Integer.valueOf(this.lport));
             u.setStatus("online");
             client.keyFor(selector).attach(u);
+            lacal=u;
             list.add(u);
-            byte[] request = u.toString().getBytes();
+            byte[] request = new byte[0];
+            try {
+                request = u.toString().getBytes("UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                System.out.println("Coding failure");
+            }
             ByteBuffer buffer = ByteBuffer.allocate(request.length);
             buffer.put(request);
             buffer.flip();

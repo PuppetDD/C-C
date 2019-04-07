@@ -6,6 +6,7 @@ import com.protocol.User;
 import javafx.application.Platform;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
@@ -110,11 +111,9 @@ public class NioServer extends Thread {
         int read = client.read(buffer);
         if (read > 0) {
             //获取到了login请求数据，对字节进行编解码
-            System.out.println("buffer");
+            System.out.println("request");
             buffer.flip();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
-            String request = new String(bytes, Charset.forName("UTF-8"));
+            String request = Charset.forName("UTF-8").decode(buffer).toString();
             String[] user = request.split(",");
             //注册login
             login(key, user);
@@ -140,7 +139,12 @@ public class NioServer extends Thread {
             if (key.isValid() && !key.isAcceptable()) {
                 User u = (User) key.attachment();
                 response = "user," + u.toString() + "\n";
-                byte[] user = response.getBytes();
+                byte[] user = new byte[0];
+                try {
+                    user = response.getBytes("UTF-8");
+                } catch (UnsupportedEncodingException e) {
+                    System.out.println("Coding failure");
+                }
                 buffer = ByteBuffer.allocate(user.length);
                 buffer.put(user);
                 buffer.flip();

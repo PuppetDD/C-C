@@ -31,6 +31,7 @@ public class NioClientMain extends Application {
             System.exit(0);
         });
         NioClient.getClientSe().getConnect().setOnAction(e -> {
+            UdpClient.one=false;
             String port = NioClient.getClientSe().getTextport().getText();
             String lport = NioClient.getClientSe().getTextlport().getText();
             if (port != null && lport != null) {
@@ -41,6 +42,8 @@ public class NioClientMain extends Application {
                     try {
                         c = new NioClient(name, ip, Integer.valueOf(port), Integer.valueOf(lport));
                         c.start();
+                        UdpClient u=new UdpClient(Integer.valueOf(lport));
+                        u.start();
                     } catch (Exception e1) {
                         NioClient.getClientRe().getRetext().appendText("Input error\n");
                     }
