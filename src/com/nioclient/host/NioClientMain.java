@@ -37,15 +37,10 @@ public class NioClientMain extends Application {
                         c = new NioClient(ip, Integer.valueOf(port));
                         c.start();
                     } catch (Exception e1) {
-                        NioClient.getClientRe().getRetext().appendText("Input message error\n");
+                        NioClient.getClientRe().getRetext().appendText("Input error\n");
                     }
                 } else {
                     c.setStop();
-                    NioClient.getClientSe().getConnect().setText("Connect");
-                    NioClient.getClientSe().getTextip().setEditable(true);
-                    NioClient.getClientSe().getTextport().setEditable(true);
-                    NioClient.getClientSe().getTextip().setText(null);
-                    NioClient.getClientSe().getTextport().setText(null);
                 }
             }
         });

@@ -4,6 +4,7 @@ import com.nioserver.pane.ServerRecevied;
 import com.nioserver.pane.ServerSend;
 import com.protocol.User;
 import javafx.application.Platform;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -33,7 +34,7 @@ public class NioServer extends Thread {
             serverSocketChannel.configureBlocking(false);
             serverSocketChannel.socket().bind(new InetSocketAddress(9999), 1024);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-            serverRe.getRetext().appendText("Waiting for Connecting...\n");
+            serverRe.getRetext().appendText("Server on\n");
             serverSe.getTextip().setText(serverSocketChannel.socket().getInetAddress().toString());
             serverSe.getTextport().setText(String.valueOf(serverSocketChannel.socket().getLocalPort()));
         } catch (IOException e) {
@@ -56,6 +57,7 @@ public class NioServer extends Thread {
                     try {
                         handleKey(key);
                     } catch (Exception e) {
+                        serverRe.getRetext().appendText("Connection error\n");
                         key.cancel();
                         try {
                             key.channel().close();
@@ -64,18 +66,16 @@ public class NioServer extends Thread {
                     }
                 }
             } catch (IOException e) {
-                serverRe.getRetext().appendText("Nobody connect\n");
+                serverRe.getRetext().appendText("No connection\n");
             }
         }
         try {
-            serverRe.getRetext().appendText("Server close\n");
+            serverRe.getRetext().appendText("Server down\n");
             selector.close();
             serverSocketChannel.close();
-            //没有关闭所有socketChannel
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-        return;
     }
 
     private void handleKey(SelectionKey key) throws IOException {
@@ -93,7 +93,7 @@ public class NioServer extends Thread {
                     handleRead(key);
                 }
             } catch (Exception e) {
-                System.out.println("Read logout Exception");
+                System.out.println("logout Exception");
                 logout(key);
             }
         }
@@ -119,7 +119,7 @@ public class NioServer extends Thread {
             response(client);
         } else if (read < 0) {
             //客户端正常断开
-            System.out.println("Read logout normal");
+            System.out.println("logout normal");
             logout(key);
         }
     }
@@ -180,12 +180,11 @@ public class NioServer extends Thread {
             }
         });
         try {
-            serverRe.getRetext().appendText("Connected from  " + client.getRemoteAddress() + "\n");
+            serverRe.getRetext().appendText(client.getRemoteAddress() + " is connected\n");
         } catch (IOException e) {
             e.printStackTrace();
         }
         serverSe.getList().setItems(serverSe.getItems());
-        serverRe.getRetext().appendText(ServerSend.count + " client connect successfully\n");
     }
 
     private void logout(SelectionKey key) {
@@ -204,7 +203,7 @@ public class NioServer extends Thread {
             }
         });
         try {
-            serverRe.getRetext().appendText("Disconnect from " + client.getRemoteAddress() + "\n");
+            serverRe.getRetext().appendText(client.getRemoteAddress() + " is disconnected\n");
             key.cancel();
             client.close();
         } catch (IOException e) {
@@ -223,6 +222,8 @@ public class NioServer extends Thread {
             key = iterator.next();
             String s = null;
             if (key.isValid() && !key.isAcceptable() && key.toString().compareTo(touch.toString()) != 0) {
+                //不是ServerSocketChannel，也不是touch对应的客户端
+                //而是剩余的客户端
                 SocketChannel client = (SocketChannel) key.channel();
                 s = type + "," + u.toString() + "\n";
                 byte[] message = s.getBytes();

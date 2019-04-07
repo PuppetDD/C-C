@@ -4,7 +4,7 @@ import com.nioclient.pane.ClientRecevied;
 import com.nioclient.pane.ClientSend;
 import com.protocol.User;
 import javafx.application.Platform;
-import javafx.collections.ObservableList;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -42,7 +42,6 @@ public class NioClient extends Thread {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-            socketChannel.register(selector, SelectionKey.OP_CONNECT);
             System.out.println("Connect succeed");
         } catch (IOException e) {
             if (selector != null) {
@@ -83,12 +82,14 @@ public class NioClient extends Thread {
             }
         }
         try {//正常关闭client
+            System.out.println("Active disconnect");
+            disConnect(socketChannel.keyFor(selector));
             selector.close();
-            if (socketChannel != null) {
-                String s = socketChannel.getRemoteAddress().toString();
-                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
-                socketChannel.close();
-            }
+//            if (socketChannel != null) {
+//                String s = socketChannel.getRemoteAddress().toString();
+//                clientRe.getRetext().appendText("Disconnect from " + s + "\n");
+//                socketChannel.close();
+//            }
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -97,21 +98,18 @@ public class NioClient extends Thread {
     private void connect() {
         try {
             if (socketChannel.connect(new InetSocketAddress(ip, port))) {
-                socketChannel.register(selector, SelectionKey.OP_READ);
-                //发送请求消息 读应答
+                //直连成功发送请求消息，注册SelectionKey.OP_READ操作
                 handleWrite(socketChannel);
+                socketChannel.register(selector, SelectionKey.OP_READ);
             } else {
-                //如果直连接连接未成功，则注册到多路复用器上，并注册SelectionKey.OP_CONNECT操作
+                //直连失败，注册SelectionKey.OP_CONNECT操作
                 System.out.println("Register OP_CONNECT");
-                ObservableList<String> t = clientSe.getItems();
-                for (String s : t) {
-                    Platform.runLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            clientSe.getItems().remove(s);
-                        }
-                    });
-                }
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        clientSe.getItems().clear();
+                    }
+                });
                 socketChannel.register(selector, SelectionKey.OP_CONNECT);
             }
         } catch (IOException e) {
@@ -122,16 +120,24 @@ public class NioClient extends Thread {
     private void handleKey(SelectionKey key) throws IOException {
         System.out.println("handleKey");
         if (key.isValid()) {
+            System.out.println("isValid");
             if (key.isConnectable()) {
+                System.out.println("isConnectable");
                 SocketChannel client = (SocketChannel) key.channel();
-                if (client.finishConnect()) {
-                    //客户端连接成功
-                    client.register(selector, SelectionKey.OP_READ);
+                try {
                     handleWrite(client);
-                } else {
-                    //连接失败
-                    System.exit(1);
+                } catch (Exception e) {
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            clientSe.getConnect().setText("Reconnect");
+                        }
+                    });
+                    clientRe.getRetext().appendText("The connection fails\n");
+                    System.out.println("connection error");
+                    return;
                 }
+                client.register(selector, SelectionKey.OP_READ);
             }
             try {
                 if (key.isReadable()) {
@@ -139,7 +145,7 @@ public class NioClient extends Thread {
                 }
             } catch (Exception e) {
                 //服务器异常退出
-                System.out.println("Logout exception\n");
+                System.out.println("Passive disconnection:exception");
                 disConnect(key);
             }
         }
@@ -147,9 +153,6 @@ public class NioClient extends Thread {
 
     private void handleRead(SelectionKey key) throws IOException {
         System.out.println("handleRead");
-        for (User user : list) {
-            System.out.println(user.toString());
-        }
         SocketChannel client = (SocketChannel) key.channel();
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         ByteBuffer line = ByteBuffer.allocate(1024);
@@ -180,27 +183,14 @@ public class NioClient extends Thread {
             }
             buffer.clear();
         } else if (bytes < 0) {
-            System.out.println("Logout normal\n");
+            System.out.println("Passive disconnection:normal");
             disConnect(key);
         }
     }
 
     private void handleWrite(SocketChannel client) throws IOException {
         //login服务器时调用一次
-        System.out.println("handleWrite\n");
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                clientSe.getConnect().setText("Disconnect");
-            }
-        });
-        clientRe.getRetext().appendText("Connect " + client.getRemoteAddress() + " successfully\n");
-        clientSe.getTextip().clear();
-        clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
-        clientSe.getTextport().clear();
-        clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
-        clientSe.getTextip().setEditable(false);
-        clientSe.getTextport().setEditable(false);
+        System.out.println("handleWrite");
         if (client.finishConnect()) {
             //客户端连接成功
             byte[] request = "user,1000".getBytes();
@@ -208,9 +198,19 @@ public class NioClient extends Thread {
             buffer.put(request);
             buffer.flip();
             client.write(buffer);
-        } else {//连接失败
-            System.out.println("Connect error");
-            System.exit(1);
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    clientSe.getConnect().setText("Disconnect");
+                }
+            });
+            clientRe.getRetext().appendText("Connection to " + client.getRemoteAddress() + " successful\n");
+            clientSe.getTextip().clear();
+            clientSe.getTextip().setText(client.socket().getLocalAddress().toString());
+            clientSe.getTextport().clear();
+            clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
+            clientSe.getTextip().setEditable(false);
+            clientSe.getTextport().setEditable(false);
         }
     }
 
@@ -260,6 +260,7 @@ public class NioClient extends Thread {
     }
 
     private void disConnect(SelectionKey key) {
+        System.out.println("disConnect\n");
         SocketChannel client = (SocketChannel) key.channel();
         Platform.runLater(new Runnable() {
             @Override
@@ -275,7 +276,7 @@ public class NioClient extends Thread {
         try {
             String s = client.getRemoteAddress().toString();
             clientRe.getRetext().appendText("Disconnect from " + s + "\n");
-            key.channel().close();
+            client.close();
         } catch (Exception e1) {
         }
     }

@@ -6,15 +6,15 @@ import javafx.scene.layout.VBox;
 
 public class ClientRecevied extends VBox {
 
-    private Label re = new Label("Received Message:");
-    ;
+    private Label re = new Label("Message:");
     private TextArea retext = new TextArea();
 
     public ClientRecevied() {
-        retext.setMinSize(300, 430);
+        retext.setMaxSize(380, 425);
+        retext.setMinSize(380, 425);
         retext.setEditable(false);
         this.getChildren().addAll(re, retext);
-        this.setSpacing(15);
+        this.setSpacing(20);
     }
 
     public TextArea getRetext() {

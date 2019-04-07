@@ -10,15 +10,15 @@ import javafx.scene.layout.VBox;
 
 public class ServerSend extends VBox {
 
-    private Label ipaddress = new Label("IPAddress:");
-    private TextField textip = new TextField();
-    private Label port = new Label("Port:");
-    private TextField textport = new TextField();
+    private Label ip = new Label("Server IP:");
+    private Label port = new Label("Server Port:");
     private Label online = new Label("Online Client:");
-    private ListView<String> list = new ListView<>();
-    private ObservableList<String> items = FXCollections.observableArrayList();
-    private Button begin = new Button("Begin");
     private Label status = new Label("0 Connecting");
+    private TextField textip = new TextField();
+    private TextField textport = new TextField();
+    private ListView<String> list = new ListView<>();
+    private Button begin = new Button("Begin");
+    private ObservableList<String> items = FXCollections.observableArrayList();
     public static int count = 0;
 
     public ServerSend() {
@@ -27,12 +27,12 @@ public class ServerSend extends VBox {
         textport.setEditable(false);
         grid.setHgap(20);
         grid.setVgap(10);
-        grid.add(ipaddress, 0, 0);
+        grid.add(ip, 0, 0);
         grid.add(textip, 1, 0);
         grid.add(port, 0, 1);
         grid.add(textport, 1, 1);
-        list.setMaxWidth(350);
-        list.setMinWidth(350);
+        list.setMaxSize(350, 265);
+        list.setMinSize(350, 265);
         list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         begin.setMaxSize(100, 30);
         begin.setMinSize(100, 30);
@@ -58,16 +58,16 @@ public class ServerSend extends VBox {
         return list;
     }
 
-    public ObservableList<String> getItems() {
-        return items;
-    }
-
     public Button getBegin() {
         return begin;
     }
 
     public Label getStatus() {
         return status;
+    }
+
+    public ObservableList<String> getItems() {
+        return items;
     }
 
 }
