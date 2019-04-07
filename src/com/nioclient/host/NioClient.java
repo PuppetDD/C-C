@@ -4,7 +4,6 @@ import com.nioclient.pane.ClientRecevied;
 import com.nioclient.pane.ClientSend;
 import com.protocol.User;
 import javafx.application.Platform;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;

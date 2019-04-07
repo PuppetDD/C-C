@@ -7,7 +7,6 @@ import javafx.scene.control.TextArea;
 public class ServerRecevied extends VBox {
 
     private Label re = new Label("Message:");
-    ;
     private TextArea retext = new TextArea();
 
     public ServerRecevied() {
