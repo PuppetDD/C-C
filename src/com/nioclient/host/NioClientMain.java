@@ -86,9 +86,9 @@ public class NioClientMain extends Application {
 
     public void send() {
         System.out.println("Send");
-        if (NioClient.getClientSe().getMessage().getText() != null) {
+        String s = NioClient.getClientSe().getList().getSelectionModel().getSelectedItems().get(0);
+        if (NioClient.getClientSe().getMessage().getText() != null && s != null) {
             for (User u : c.getList()) {
-                String s = NioClient.getClientSe().getList().getSelectionModel().getSelectedItems().get(0);
                 if (u.uniqueName().compareTo(s) == 0) {
                     try {
                         DatagramChannel channel = DatagramChannel.open();
@@ -100,13 +100,13 @@ public class NioClientMain extends Application {
                         buffer.flip();
                         /*发送UDP数据包*/
                         channel.send(buffer, new InetSocketAddress(u.getIp(), u.getPort()));
-                        NioClient.getClientSe().getMessage().setText(null);
                         System.out.println("Send successful");
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
                 }
             }
+            NioClient.getClientSe().getMessage().setText(null);
         }
     }
 
