@@ -17,10 +17,12 @@ public class UdpClient extends Thread {
 
     private int port;
     private static DatagramChannel channel = null;
-    public boolean one;
+    public static Boolean error;
+    public Boolean one;
 
     public UdpClient(int port) {
         System.out.println("\nNew UdpClient!!!!!!!!");
+        error = false;
         this.port = port;
         try {
             if (channel != null) {
@@ -31,7 +33,8 @@ public class UdpClient extends Thread {
             channel = DatagramChannel.open();
             channel.socket().bind(new InetSocketAddress(this.port));
         } catch (IOException e) {
-            NioClient.getClientRe().getRetext().appendText("The l_port is already in use\n");
+            NioClient.getClientRe().getRetext().appendText("The listening port is already in use\n");
+            error = true;
         }
         this.one = true;
         System.out.println("New UdpClient end!!!!!!!!");
@@ -50,12 +53,19 @@ public class UdpClient extends Thread {
                 /*设置缓冲区可读*/
                 buffer.flip();
                 /*循环读出所有字符*/
+                int n = 0;
                 while (buffer.hasRemaining()) {
                     byte b = buffer.get();
                     if (b == 10 || b == 13) {
                         line.flip();
-                        String user = Charset.forName("UTF-8").decode(line).toString();
-                        System.out.println(user);
+                        String message = Charset.forName("UTF-8").decode(line).toString();
+                        if (n == 0 && message.compareTo(NioClient.local.toString()) != 0) {
+                            break;
+                        } else if(message.compareTo(NioClient.local.toString()) != 0){
+                            NioClient.getClientRe().getRetext().appendText(message + "\n");
+                        }
+                        n++;
+                        System.out.println(message);
                         line.clear();
                     } else {
                         line.put(b);
@@ -64,14 +74,10 @@ public class UdpClient extends Thread {
                 buffer.clear();
             } catch (Exception e) {
                 System.out.println("break");
-                this.one=false;
+                this.one = false;
             }
         }
         System.out.println(port + "; return");
-    }
-
-    public DatagramChannel getChannel() {
-        return channel;
     }
 
 }

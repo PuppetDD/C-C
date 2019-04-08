@@ -28,7 +28,7 @@ public class NioClient extends Thread {
 
     private static ClientRecevied clientRe = new ClientRecevied();
     private static ClientSend clientSe = new ClientSend();
-    private static User lacal;
+    public static User local;
     private ArrayList<User> list = new ArrayList<>();
     private String name;
     private String ip;
@@ -204,7 +204,10 @@ public class NioClient extends Thread {
             u.setPort(Integer.valueOf(this.lport));
             u.setStatus("online");
             client.keyFor(selector).attach(u);
-            lacal=u;
+            if (local != null) {
+                list.remove(local);
+            }
+            local = u;
             list.add(u);
             byte[] request = new byte[0];
             try {
@@ -311,7 +314,7 @@ public class NioClient extends Thread {
         return clientSe;
     }
 
-    public ArrayList<User> getList(){
+    public ArrayList<User> getList() {
         return list;
     }
 

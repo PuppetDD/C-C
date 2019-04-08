@@ -25,7 +25,7 @@ public class User {
     }
 
     public String uniqueName() {
-        String s = name + ":" + vport + "  [" + status + "]";
+        String s = name + ":" + port + ":" + vport + "  [" + status + "]";
         return s;
     }
 
