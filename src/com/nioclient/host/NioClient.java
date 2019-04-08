@@ -195,6 +195,8 @@ public class NioClient extends Thread {
         System.out.println("handleWrite");
         if (client.finishConnect()) {
             //客户端连接成功
+            //关闭上一次的UDP监听线程
+            UdpClient.one=false;
             String ip = client.socket().getInetAddress().toString();
             User u = new User();
             u.setName(this.name);
@@ -308,6 +310,10 @@ public class NioClient extends Thread {
 
     public static ClientSend getClientSe() {
         return clientSe;
+    }
+
+    public ArrayList<User> getList(){
+        return list;
     }
 
 }

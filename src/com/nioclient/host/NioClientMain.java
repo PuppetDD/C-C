@@ -6,12 +6,19 @@ import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+
 /**
  * @author GOLD
  */
 public class NioClientMain extends Application {
 
     private NioClient c;
+    private UdpClient u;
+    private int i=1;
 
     public static void main(String[] args) {
         launch(args);
@@ -31,27 +38,49 @@ public class NioClientMain extends Application {
             System.exit(0);
         });
         NioClient.getClientSe().getConnect().setOnAction(e -> {
-            UdpClient.one=false;
-            String port = NioClient.getClientSe().getTextport().getText();
-            String lport = NioClient.getClientSe().getTextlport().getText();
-            if (port != null && lport != null) {
-                String s = NioClient.getClientSe().getConnect().getText();
-                String name = NioClient.getClientSe().getTextname().getText();
-                String ip = NioClient.getClientSe().getTextip().getText();
-                if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0) {
-                    try {
-                        c = new NioClient(name, ip, Integer.valueOf(port), Integer.valueOf(lport));
-                        c.start();
-                        UdpClient u=new UdpClient(Integer.valueOf(lport));
-                        u.start();
-                    } catch (Exception e1) {
-                        NioClient.getClientRe().getRetext().appendText("Input error\n");
-                    }
-                } else {
-                    c.setStop();
-                }
-            } else {
-                NioClient.getClientRe().getRetext().appendText("Please enter the necessary information:port\n");
+            if(i>1){
+                u.stop();
+                i--;
+            }
+            u = new UdpClient(Integer.valueOf(NioClient.getClientSe().getTextlport().getText()));
+            u.start();
+            i++;
+//            String port = NioClient.getClientSe().getTextport().getText();
+//            String lport = NioClient.getClientSe().getTextlport().getText();
+//            if (port != null && lport != null) {
+//                String s = NioClient.getClientSe().getConnect().getText();
+//                String name = NioClient.getClientSe().getTextname().getText();
+//                String ip = NioClient.getClientSe().getTextip().getText();
+//                if (s.compareTo("Connect") == 0 || s.compareTo("Reconnect") == 0) {
+//                    try {
+//                        c = new NioClient(name, ip, Integer.valueOf(port), Integer.valueOf(lport));
+//                        c.start();
+//                        UdpClient u = new UdpClient(222222);
+//                        u.start();
+//                    } catch (Exception e1) {
+//                        NioClient.getClientRe().getRetext().appendText("Input error\n");
+//                    }
+//                } else {
+//                    c.setStop();
+//                }
+//            } else {
+//                NioClient.getClientRe().getRetext().appendText("Please enter the necessary information:port\n");
+//            }
+        });
+        NioClient.getClientSe().getSend().setOnAction(e -> {
+            System.out.println("Send");
+            try {
+                DatagramChannel channel = DatagramChannel.open();
+                String data = "Test for UDP!" + System.currentTimeMillis()+"\n";
+                ByteBuffer buffer = ByteBuffer.allocate(48);
+                buffer.clear();
+                buffer.put(data.getBytes("UTF-8"));
+                buffer.flip();
+                /*发送UDP数据包*/
+                int bytesSent = channel.send(buffer, new InetSocketAddress("127.0.0.1", 12345));
+                System.out.println("Send successful");
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         });
         primaryStage.show();
