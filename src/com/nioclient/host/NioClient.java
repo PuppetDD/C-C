@@ -42,7 +42,7 @@ public class NioClient extends Thread {
         this.name = name == null ? "user" : name;
         this.ip = ip == null ? "127.0.0.1" : ip;
         this.port = 9999;
-        this.lport = 12345;
+        this.lport = lport;
         this.stop = false;
         try {
             selector = Selector.open();
@@ -196,7 +196,6 @@ public class NioClient extends Thread {
         if (client.finishConnect()) {
             //客户端连接成功
             //关闭上一次的UDP监听线程
-            UdpClient.one=false;
             String ip = client.socket().getInetAddress().toString();
             User u = new User();
             u.setName(this.name);

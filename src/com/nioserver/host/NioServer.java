@@ -74,7 +74,6 @@ public class NioServer extends Thread {
             }
         }
         try {
-            serverRe.getRetext().appendText("Server down\n");
             selector.close();
             serverSocketChannel.close();
         } catch (IOException ex) {
@@ -193,7 +192,9 @@ public class NioServer extends Thread {
         System.out.println("logout");
         User u = (User) key.attachment();
         list.remove(u);
-        update(key, "logout");
+        if (serverSocketChannel.isOpen()) {
+            update(key, "logout");
+        }
         ServerSend.count--;
         Platform.runLater(new Runnable() {
             @Override
@@ -244,6 +245,7 @@ public class NioServer extends Thread {
 
     public void setStop() {
         this.stop = true;
+        serverRe.getRetext().appendText("Server down\n");
         Set<SelectionKey> selectionKeys = selector.keys();
         Iterator<SelectionKey> iterator = selectionKeys.iterator();
         SelectionKey key = null;
