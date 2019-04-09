@@ -31,19 +31,44 @@ public class NioServerMain extends Application {
             System.exit(0);
         });
         NioServer.getServerSe().getBegin().setOnAction(e -> {
-            String str = NioServer.getServerSe().getBegin().getText();
+            listen();
+        });
+        primaryStage.show();
+    }
+
+    public void listen() {
+        String str = NioServer.getServerSe().getBegin().getText();
+        String port = NioServer.getServerSe().getTextport().getText();
+        if (port != null) {
             if (str.compareTo("Begin") == 0) {
-                NioServer.getServerSe().getBegin().setText("Finish");
-                s = new NioServer();
-                s.start();
+                Boolean error = false;
+                try {
+                    int p = Integer.valueOf(port);
+                    if (p < 0 || p > 65535) {
+                        error = true;
+                    }
+                } catch (Exception e1) {
+                    error = true;
+                }
+                if (!error) {
+                    NioServer.getServerSe().getBegin().setText("Finish");
+                    s = new NioServer(Integer.valueOf(port));
+                    s.start();
+                } else {
+                    NioServer.getServerRe().getRetext().appendText("Input is wrong\n");
+                    NioServer.getServerSe().getTextport().setText(null);
+                }
+
             } else {
                 s.setStop();
                 NioServer.getServerSe().getBegin().setText("Begin");
                 NioServer.getServerSe().getTextip().setText(null);
                 NioServer.getServerSe().getTextport().setText(null);
+                NioServer.getServerSe().getTextport().setEditable(true);
             }
-        });
-        primaryStage.show();
+        } else {
+            NioServer.getServerRe().getRetext().appendText("Please enter the necessary port information\n");
+        }
     }
 
 }

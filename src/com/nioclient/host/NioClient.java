@@ -28,27 +28,27 @@ public class NioClient extends Thread {
 
     private static ClientRecevied clientRe = new ClientRecevied();
     private static ClientSend clientSe = new ClientSend();
-    public static User local;
     private ArrayList<User> list = new ArrayList<>();
+    private Selector selector;
+    private SocketChannel socketChannel;
+    private Boolean stop;
     private String name;
     private String ip;
     private int port;
     private int lport;
-    private Selector selector;
-    private SocketChannel socketChannel;
-    private Boolean stop;
+    public static User local;
 
     public NioClient(String name, String ip, int port, int lport) {
         this.name = name == null ? "user" : name;
-        this.ip = ip == null ? "127.0.0.1" : ip;
-        this.port = 9999;
+        this.ip = ip;
+        this.port = port;
         this.lport = lport;
         this.stop = false;
         try {
             selector = Selector.open();
             socketChannel = SocketChannel.open();
             socketChannel.configureBlocking(false);
-            System.out.println("Connect succeed");
+            System.out.println("Open succeed");
         } catch (IOException e) {
             if (selector != null) {
                 try {
@@ -132,7 +132,6 @@ public class NioClient extends Thread {
                         @Override
                         public void run() {
                             clientSe.getConnect().setText("Reconnect");
-                            clientSe.getTextip().setText(null);
                         }
                     });
                     clientRe.getRetext().appendText("The connection fails\n");
@@ -194,6 +193,7 @@ public class NioClient extends Thread {
         //login服务器时调用一次
         System.out.println("handleWrite");
         if (client.finishConnect()) {
+            System.out.println("finishConnect");
             //客户端连接成功
             //关闭上一次的UDP监听线程
             String ip = client.socket().getInetAddress().toString();
@@ -201,7 +201,7 @@ public class NioClient extends Thread {
             u.setName(this.name);
             u.setIp(ip.substring(1, ip.length()));
             u.setVport(client.socket().getLocalPort());
-            u.setPort(Integer.valueOf(this.lport));
+            u.setPort(this.lport);
             u.setStatus("online");
             client.keyFor(selector).attach(u);
             if (local != null) {

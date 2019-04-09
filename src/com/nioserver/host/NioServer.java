@@ -28,19 +28,22 @@ public class NioServer extends Thread {
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private ArrayList<User> list = new ArrayList<>();
+    private int port;
     private Boolean stop;
 
-    public NioServer() {
+    public NioServer(int port) {
+        this.port = port;
         try {
             this.stop = false;
             selector = Selector.open();
             serverSocketChannel = ServerSocketChannel.open();
             serverSocketChannel.configureBlocking(false);
-            serverSocketChannel.socket().bind(new InetSocketAddress(9999), 1024);
+            serverSocketChannel.socket().bind(new InetSocketAddress(this.port), 1024);
             serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
             serverRe.getRetext().appendText("Server on\n");
             serverSe.getTextip().setText(serverSocketChannel.socket().getInetAddress().toString());
             serverSe.getTextport().setText(String.valueOf(serverSocketChannel.socket().getLocalPort()));
+            serverSe.getTextport().setEditable(false);
         } catch (IOException e) {
             serverRe.getRetext().appendText("Server Startup Failure\n");
             this.stop = true;

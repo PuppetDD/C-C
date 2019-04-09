@@ -21,14 +21,14 @@ public class UdpClient extends Thread {
     public Boolean one;
 
     public UdpClient(int port) {
-        System.out.println("\nNew UdpClient!!!!!!!!");
+        System.out.println("\nNew UdpClient successful");
         error = false;
         this.port = port;
         try {
             if (channel != null) {
                 //关闭上一次的线程通道，造成线程异常退出，释放socket以及端口
                 channel.close();
-                System.out.println("channel.close()");
+                System.out.println("Close the previous thread");
             }
             channel = DatagramChannel.open();
             channel.socket().bind(new InetSocketAddress(this.port));
@@ -37,19 +37,18 @@ public class UdpClient extends Thread {
             error = true;
         }
         this.one = true;
-        System.out.println("New UdpClient end!!!!!!!!");
     }
 
     @Override
     public void run() {
+        System.out.println("Listening port:" + port);
         while (one) {
             try {
                 ByteBuffer buffer = ByteBuffer.allocate(1024);
                 ByteBuffer line = ByteBuffer.allocate(1024);
                 /*阻塞，等待发来的数据*/
-                System.out.println(port + ": Thread is running!!!!!!!!");
                 channel.receive(buffer);
-                System.out.println("channel.receive(buffer);");
+                System.out.println("Receive message:");
                 /*设置缓冲区可读*/
                 buffer.flip();
                 /*循环读出所有字符*/
@@ -61,7 +60,7 @@ public class UdpClient extends Thread {
                         String message = Charset.forName("UTF-8").decode(line).toString();
                         if (n == 0 && message.compareTo(NioClient.local.toString()) != 0) {
                             break;
-                        } else if(message.compareTo(NioClient.local.toString()) != 0){
+                        } else if (message.compareTo(NioClient.local.toString()) != 0) {
                             NioClient.getClientRe().getRetext().appendText(message + "\n");
                         }
                         n++;
@@ -73,11 +72,12 @@ public class UdpClient extends Thread {
                 }
                 buffer.clear();
             } catch (Exception e) {
-                System.out.println("break");
+                //由于channel关闭导致channel.receive(buffer)异常退出线程
+                //一个客户端只允许一个监听UDP消息的线程
                 this.one = false;
             }
         }
-        System.out.println(port + "; return");
+        System.out.println("Stop listening port:" + port);
     }
 
 }
