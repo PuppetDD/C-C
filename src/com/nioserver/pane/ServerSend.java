@@ -18,7 +18,7 @@ public class ServerSend extends VBox {
     private Label online = new Label("Online Client:");
     private Label status = new Label("0 Connecting");
     private TextField textip = new TextField();
-    private TextField textport = new TextField();
+    private TextField textport = new TextField(null);
     private ListView<String> list = new ListView<>();
     private Button begin = new Button("Begin");
     private ObservableList<String> items = FXCollections.observableArrayList();
