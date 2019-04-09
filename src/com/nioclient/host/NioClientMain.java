@@ -113,23 +113,25 @@ public class NioClientMain extends Application {
 
     private void send() {
         System.out.println("Send");
-        String s = NioClient.getClientSe().getList().getSelectionModel().getSelectedItems().get(0);
-        if (NioClient.getClientSe().getMessage().getText() != null && s != null) {
-            for (User u : c.getList()) {
-                if (u.uniqueName().compareTo(s) == 0) {
-                    try {
-                        DatagramChannel channel = DatagramChannel.open();
-                        String data = NioClient.getClientSe().getMessage().getText();
-                        String message = new Message(u, NioClient.local, data).toString();
-                        ByteBuffer buffer = ByteBuffer.allocate(message.length());
-                        buffer.clear();
-                        buffer.put(message.getBytes("UTF-8"));
-                        buffer.flip();
-                        /*发送UDP数据包*/
-                        channel.send(buffer, new InetSocketAddress(u.getIp(), u.getPort()));
-                        System.out.println("Send successful");
-                    } catch (IOException e1) {
-                        e1.printStackTrace();
+        String data = NioClient.getClientSe().getMessage().getText();
+        if (data != null) {
+            for (String s : NioClient.getClientSe().getList().getSelectionModel().getSelectedItems()) {
+                for (User u : c.getList()) {
+                    if (u.uniqueName().compareTo(s) == 0) {
+                        System.out.println(u);
+                        try {
+                            DatagramChannel channel = DatagramChannel.open();
+                            String message = new Message(u, NioClient.local, data).toString();
+                            ByteBuffer buffer = ByteBuffer.allocate(message.length());
+                            buffer.clear();
+                            buffer.put(message.getBytes("UTF-8"));
+                            buffer.flip();
+                            /*发送UDP数据包*/
+                            channel.send(buffer, new InetSocketAddress(u.getIp(), u.getPort()));
+                            System.out.println("Send successful");
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
                     }
                 }
             }

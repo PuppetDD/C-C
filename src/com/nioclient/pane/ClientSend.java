@@ -47,6 +47,7 @@ public class ClientSend extends VBox {
         grid.add(textlport, 3, 1);
         list.setMaxWidth(350);
         list.setMinWidth(350);
+        list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         message.setMaxSize(350, 100);
         message.setMinSize(350, 100);
         connect.setMaxSize(100, 30);

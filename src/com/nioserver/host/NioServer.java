@@ -178,8 +178,7 @@ public class NioServer extends Thread {
         User u = new User();
         u.setName(user[0]);
         u.setIp(user[1]);
-        u.setVport(Integer.valueOf(user[2]));
-        u.setPort(Integer.valueOf(user[3]));
+        u.setPort(Integer.valueOf(user[2]));
         u.setStatus("online");
         key.attach(u);
         list.add(u);
@@ -196,7 +195,7 @@ public class NioServer extends Thread {
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
-        serverRe.getRetext().appendText(u.getIp() + ":" + u.getVport() + " is connected\n");
+        serverRe.getRetext().appendText(u.toString() + " is connected\n");
         serverSe.getList().setItems(serverSe.getItems());
     }
 
@@ -216,7 +215,7 @@ public class NioServer extends Thread {
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
-        serverRe.getRetext().appendText(u.getIp() + ":" + u.getVport() + " is disconnected\n");
+        serverRe.getRetext().appendText(u.getIp() + ":" + u.toString() + " is disconnected\n");
         try {
             key.cancel();
             key.channel().close();

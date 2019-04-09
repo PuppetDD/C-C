@@ -166,9 +166,8 @@ public class NioClient extends Thread {
                     line.flip();
                     String user = Charset.forName("UTF-8").decode(line).toString();
                     String[] attribute = user.split(",");
-                    int port = client.socket().getLocalPort();
                     try {
-                        update(attribute, port);
+                        update(attribute);
                     } catch (Exception e) {
                         System.out.println("Format error" + user);
                     }
@@ -200,7 +199,6 @@ public class NioClient extends Thread {
             User u = new User();
             u.setName(this.name);
             u.setIp(ip.substring(1, ip.length()));
-            u.setVport(client.socket().getLocalPort());
             u.setPort(this.lport);
             u.setStatus("online");
             client.keyFor(selector).attach(u);
@@ -227,7 +225,7 @@ public class NioClient extends Thread {
             });
             clientRe.getRetext().appendText("Connection to " + client.getRemoteAddress() + " successful\n");
             clientSe.getTextip().setText(u.getIp());
-            clientSe.getTextport().setText(String.valueOf(u.getVport()));
+            clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
             clientSe.getTextname().setText(u.getName());
             clientSe.getTextlport().setText(String.valueOf(u.getPort()));
             clientSe.getTextip().setEditable(false);
@@ -237,18 +235,17 @@ public class NioClient extends Thread {
         }
     }
 
-    private void update(String[] attribute, int port) {
+    private void update(String[] attribute) {
         //更新login，logout用户
         System.out.println("update");
         User u = new User();
         u.setName(attribute[1]);
         u.setIp(attribute[2]);
-        u.setVport(Integer.valueOf(attribute[3]));
-        u.setPort(Integer.valueOf(attribute[4]));
+        u.setPort(Integer.valueOf(attribute[3]));
         if (attribute[0].compareTo("logout") == 0) {
             u.setStatus("offline");
             updateStatus(u);
-        } else if (port != u.getVport()) {
+        } else if (u.toString().compareTo(local.toString()) != 0) {
             //在线用户列表添加非本地用户信息
             u.setStatus("online");
             updateStatus(u);
@@ -284,9 +281,18 @@ public class NioClient extends Thread {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
+                for (User user : list) {
+                    if (user.toString().compareTo(local.toString()) != 0) {
+                        //如果本地列表已经有该用户就删除再添加
+                        clientSe.getItems().remove(user.uniqueName());
+                        user.setStatus("offline");
+                        clientSe.getItems().add(user.uniqueName());
+                    }
+                }
                 clientSe.getConnect().setText("Connect");
             }
         });
+        clientSe.getList().setItems(clientSe.getItems());
         clientSe.getTextip().setEditable(true);
         clientSe.getTextport().setEditable(true);
         clientSe.getTextname().setEditable(true);

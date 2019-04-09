@@ -12,7 +12,6 @@ public class User {
     private String name;
     private String ip;
     private int port;
-    private int vport;
     private String status;
 
     @Override
@@ -20,12 +19,12 @@ public class User {
         if (name == null && ip == null) {
             return null;
         }
-        String s = name + "," + ip + "," + String.valueOf(vport) + "," + String.valueOf(port);
+        String s = name + "," + ip + "," + String.valueOf(port);
         return s;
     }
 
     public String uniqueName() {
-        String s = name + ":" + port + ":" + vport + "  [" + status + "]";
+        String s = name + ":" + port + "    [" + status + "]";
         return s;
     }
 
@@ -53,14 +52,6 @@ public class User {
         this.port = port;
     }
 
-    public int getVport() {
-        return vport;
-    }
-
-    public void setVport(int vport) {
-        this.vport = vport;
-    }
-
     public String getStatus() {
         return status;
     }
@@ -68,4 +59,5 @@ public class User {
     public void setStatus(String status) {
         this.status = status;
     }
+
 }
