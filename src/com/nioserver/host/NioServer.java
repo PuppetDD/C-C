@@ -45,13 +45,23 @@ public class NioServer extends Thread {
             serverSe.getTextport().setText(String.valueOf(serverSocketChannel.socket().getLocalPort()));
             serverSe.getTextport().setEditable(false);
         } catch (IOException e) {
+            serverRe.getRetext().appendText("The listening port is already in use\n");
             serverRe.getRetext().appendText("Server Startup Failure\n");
+            serverSe.getBegin().setText("Restart");
             this.stop = true;
         }
     }
 
     @Override
     public void run() {
+        if (!stop) {
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    serverSe.getBegin().setText("Finish");
+                }
+            });
+        }
         while (!stop) {
             try {
                 selector.select(1000);

@@ -40,7 +40,7 @@ public class NioServerMain extends Application {
         String str = NioServer.getServerSe().getBegin().getText();
         String port = NioServer.getServerSe().getTextport().getText();
         if (port != null) {
-            if (str.compareTo("Begin") == 0) {
+            if (str.compareTo("Begin") == 0||str.compareTo("Restart") == 0) {
                 Boolean error = false;
                 try {
                     int p = Integer.valueOf(port);
@@ -51,7 +51,6 @@ public class NioServerMain extends Application {
                     error = true;
                 }
                 if (!error) {
-                    NioServer.getServerSe().getBegin().setText("Finish");
                     s = new NioServer(Integer.valueOf(port));
                     s.start();
                 } else {
