@@ -14,8 +14,7 @@ public class User {
     private int port;
     private String status;
 
-    @Override
-    public String toString() {
+    public String unique() {
         if (name == null && ip == null) {
             return null;
         }
@@ -23,7 +22,8 @@ public class User {
         return s;
     }
 
-    public String uniqueName() {
+    @Override
+    public String toString() {
         String s = name + ":" + port + "    [" + status + "]";
         return s;
     }

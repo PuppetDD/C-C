@@ -1,5 +1,6 @@
 package com.nioclient.pane;
 
+import com.protocol.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -23,11 +24,11 @@ public class ClientSend extends VBox {
     private TextField textport = new TextField(null);
     private TextField textname = new TextField(null);
     private TextField textlport = new TextField(null);
-    private ListView<String> list = new ListView<>();
+    private ListView<User> list = new ListView<>();
     private TextArea message = new TextArea(null);
     private Button connect = new Button("Connect");
     private Button send = new Button("Send");
-    private ObservableList<String> items = FXCollections.observableArrayList();
+    private ObservableList<User> items = FXCollections.observableArrayList();
 
     public ClientSend() {
         GridPane grid = new GridPane();
@@ -80,7 +81,7 @@ public class ClientSend extends VBox {
         return textlport;
     }
 
-    public ListView<String> getList() {
+    public ListView<User> getList() {
         return list;
     }
 
@@ -96,7 +97,7 @@ public class ClientSend extends VBox {
         return send;
     }
 
-    public ObservableList<String> getItems() {
+    public ObservableList<User> getItems() {
         return items;
     }
 

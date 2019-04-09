@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
@@ -115,24 +116,26 @@ public class NioClientMain extends Application {
         System.out.println("Send");
         String data = NioClient.getClientSe().getMessage().getText();
         if (data != null) {
-            for (String s : NioClient.getClientSe().getList().getSelectionModel().getSelectedItems()) {
-                for (User u : c.getList()) {
-                    if (u.uniqueName().compareTo(s) == 0) {
-                        System.out.println(u);
-                        try {
-                            DatagramChannel channel = DatagramChannel.open();
-                            String message = new Message(u, NioClient.local, data).toString();
-                            ByteBuffer buffer = ByteBuffer.allocate(message.length());
-                            buffer.clear();
-                            buffer.put(message.getBytes("UTF-8"));
-                            buffer.flip();
-                            /*发送UDP数据包*/
-                            channel.send(buffer, new InetSocketAddress(u.getIp(), u.getPort()));
-                            System.out.println("Send successful");
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
+            for (User u : NioClient.getClientSe().getList().getSelectionModel().getSelectedItems()) {
+                try {
+                    DatagramChannel channel = DatagramChannel.open();
+                    String message = new Message(u, NioClient.local, data).toString();
+                    byte[] bytes = new byte[0];
+                    try {
+                        bytes = message.getBytes("UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        System.out.println("Coding failure");
                     }
+                    ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+                    buffer.clear();
+                    buffer.put(bytes);
+                    buffer.flip();
+                    /*发送UDP数据包*/
+                    channel.send(buffer, new InetSocketAddress(u.getIp(), u.getPort()));
+                    System.out.println("send to " + u);
+                    System.out.println("Send successful");
+                } catch (IOException e1) {
+                    e1.printStackTrace();
                 }
             }
             NioClient.getClientSe().getMessage().setText(null);

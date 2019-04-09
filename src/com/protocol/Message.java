@@ -21,7 +21,7 @@ public class Message {
 
     @Override
     public String toString() {
-        String s1 = des.toString() + "\n";
+        String s1 = des.unique() + "\n";
         String s2 = origin.getName() + ":" + origin.getPort() + "  Message:\n";
         String s3 = message + "\n";
         return s1 + s2 + s3;

@@ -150,7 +150,7 @@ public class NioServer extends Thread {
             String response = null;
             if (key.isValid() && !key.isAcceptable()) {
                 User u = (User) key.attachment();
-                response = "user," + u.toString() + "\n";
+                response = "user," + u.unique() + "\n";
                 byte[] user = new byte[0];
                 try {
                     user = response.getBytes("UTF-8");
@@ -191,11 +191,11 @@ public class NioServer extends Thread {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                serverSe.getItems().add(u.uniqueName());
+                serverSe.getItems().add(u);
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
-        serverRe.getRetext().appendText(u.toString() + " is connected\n");
+        serverRe.getRetext().appendText(u.unique() + " is connected\n");
         serverSe.getList().setItems(serverSe.getItems());
     }
 
@@ -211,11 +211,11 @@ public class NioServer extends Thread {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                serverSe.getItems().remove(u.uniqueName());
+                serverSe.getItems().remove(u);
                 serverSe.getStatus().setText(ServerSend.count + " Connecting");
             }
         });
-        serverRe.getRetext().appendText(u.getIp() + ":" + u.toString() + " is disconnected\n");
+        serverRe.getRetext().appendText(u.getIp() + ":" + u.unique() + " is disconnected\n");
         try {
             key.cancel();
             key.channel().close();
@@ -238,7 +238,7 @@ public class NioServer extends Thread {
                 //不是ServerSocketChannel，也不是touch对应的客户端
                 //而是剩余的客户端
                 SocketChannel client = (SocketChannel) key.channel();
-                s = type + "," + u.toString() + "\n";
+                s = type + "," + u.unique() + "\n";
                 byte[] message = s.getBytes();
                 buffer = ByteBuffer.allocate(message.length);
                 buffer.put(message);

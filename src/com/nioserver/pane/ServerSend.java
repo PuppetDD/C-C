@@ -1,5 +1,6 @@
 package com.nioserver.pane;
 
+import com.protocol.User;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
@@ -19,9 +20,9 @@ public class ServerSend extends VBox {
     private Label status = new Label("0 Connecting");
     private TextField textip = new TextField();
     private TextField textport = new TextField(null);
-    private ListView<String> list = new ListView<>();
+    private ListView<User> list = new ListView<>();
     private Button begin = new Button("Begin");
-    private ObservableList<String> items = FXCollections.observableArrayList();
+    private ObservableList<User> items = FXCollections.observableArrayList();
     public static int count = 0;
 
     public ServerSend() {
@@ -35,7 +36,6 @@ public class ServerSend extends VBox {
         grid.add(textport, 1, 1);
         list.setMaxSize(350, 265);
         list.setMinSize(350, 265);
-        list.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         begin.setMaxSize(100, 30);
         begin.setMinSize(100, 30);
         status.setMaxSize(100, 30);
@@ -56,7 +56,7 @@ public class ServerSend extends VBox {
         return textport;
     }
 
-    public ListView<String> getList() {
+    public ListView<User> getList() {
         return list;
     }
 
@@ -68,7 +68,7 @@ public class ServerSend extends VBox {
         return status;
     }
 
-    public ObservableList<String> getItems() {
+    public ObservableList<User> getItems() {
         return items;
     }
 

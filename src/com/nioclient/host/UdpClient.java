@@ -48,7 +48,7 @@ public class UdpClient extends Thread {
                 ByteBuffer line = ByteBuffer.allocate(1024);
                 /*阻塞，等待发来的数据*/
                 channel.receive(buffer);
-                System.out.println("Receive message:");
+                System.out.println("Receive UDP:");
                 /*设置缓冲区可读*/
                 buffer.flip();
                 /*循环读出所有字符*/
@@ -58,9 +58,9 @@ public class UdpClient extends Thread {
                     if (b == 10 || b == 13) {
                         line.flip();
                         String message = Charset.forName("UTF-8").decode(line).toString();
-                        if (n == 0 && message.compareTo(NioClient.local.toString()) != 0) {
+                        if (n == 0 && message.compareTo(NioClient.local.unique()) != 0) {
                             break;
-                        } else if (message.compareTo(NioClient.local.toString()) != 0) {
+                        } else if (message.compareTo(NioClient.local.unique()) != 0) {
                             NioClient.getClientRe().getRetext().appendText(message + "\n");
                         }
                         n++;

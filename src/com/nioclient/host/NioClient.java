@@ -171,7 +171,7 @@ public class NioClient extends Thread {
                     } catch (Exception e) {
                         System.out.println("Format error" + user);
                     }
-                    System.out.println("Receive:");
+                    System.out.println("Receive TCP:");
                     for (int i = 0; i < attribute.length; i++) {
                         System.out.print(attribute[i] + " ");
                     }
@@ -209,7 +209,7 @@ public class NioClient extends Thread {
             list.add(u);
             byte[] request = new byte[0];
             try {
-                request = u.toString().getBytes("UTF-8");
+                request = u.unique().getBytes("UTF-8");
             } catch (UnsupportedEncodingException e) {
                 System.out.println("Coding failure");
             }
@@ -245,7 +245,7 @@ public class NioClient extends Thread {
         if (attribute[0].compareTo("logout") == 0) {
             u.setStatus("offline");
             updateStatus(u);
-        } else if (u.toString().compareTo(local.toString()) != 0) {
+        } else if (u.unique().compareTo(local.unique()) != 0) {
             //在线用户列表添加非本地用户信息
             u.setStatus("online");
             updateStatus(u);
@@ -259,17 +259,17 @@ public class NioClient extends Thread {
             public void run() {
                 User temp = new User();
                 for (User user : list) {
-                    if (user.toString().compareTo(u.toString()) == 0) {
+                    if (user.unique().compareTo(u.unique()) == 0) {
                         //如果本地列表已经有该用户就删除再添加
                         temp = user;
-                        clientSe.getItems().remove(user.uniqueName());
+                        clientSe.getItems().remove(user);
                     }
                 }
-                if (temp.toString() != null) {
+                if (temp.unique() != null) {
                     list.remove(temp);
                 }
                 list.add(u);
-                clientSe.getItems().add(u.uniqueName());
+                clientSe.getItems().add(u);
             }
         });
         clientSe.getList().setItems(clientSe.getItems());
@@ -282,11 +282,11 @@ public class NioClient extends Thread {
             @Override
             public void run() {
                 for (User user : list) {
-                    if (user.toString().compareTo(local.toString()) != 0) {
-                        //如果本地列表已经有该用户就删除再添加
-                        clientSe.getItems().remove(user.uniqueName());
+                    if (user.unique().compareTo(local.unique()) != 0) {
+                        //更改用户状态先删除再添加
+                        clientSe.getItems().remove(user);
                         user.setStatus("offline");
-                        clientSe.getItems().add(user.uniqueName());
+                        clientSe.getItems().add(user);
                     }
                 }
                 clientSe.getConnect().setText("Connect");
@@ -318,10 +318,6 @@ public class NioClient extends Thread {
 
     public static ClientSend getClientSe() {
         return clientSe;
-    }
-
-    public ArrayList<User> getList() {
-        return list;
     }
 
 }
