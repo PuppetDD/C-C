@@ -161,7 +161,9 @@ public class NioClient extends Thread {
         if (bytes > 0) {
             buffer.flip();
             while (buffer.hasRemaining()) {
+                //一字节一字节读
                 byte b = buffer.get();
+                //碰到换行符证明读了一整行，此时line包含一行的数据
                 if (b == 10 || b == 13) {
                     line.flip();
                     String user = Charset.forName("UTF-8").decode(line).toString();
@@ -178,6 +180,7 @@ public class NioClient extends Thread {
                     System.out.println("\n");
                     line.clear();
                 } else {
+                    //一个字节一个字节的存储一行数据
                     line.put(b);
                 }
             }
@@ -194,14 +197,13 @@ public class NioClient extends Thread {
         if (client.finishConnect()) {
             System.out.println("finishConnect");
             //客户端连接成功
-            //关闭上一次的UDP监听线程
             String ip = client.socket().getInetAddress().toString();
             User u = new User();
             u.setName(this.name);
             u.setIp(ip.substring(1, ip.length()));
             u.setPort(this.lport);
             u.setStatus("online");
-            client.keyFor(selector).attach(u);
+            client.keyFor(selector).attach(u);//通过attach绑定一个对象
             if (local != null) {
                 list.remove(local);
             }
@@ -215,7 +217,7 @@ public class NioClient extends Thread {
             }
             ByteBuffer buffer = ByteBuffer.allocate(request.length);
             buffer.put(request);
-            buffer.flip();
+            buffer.flip();//切换成写模式
             client.write(buffer);
             Platform.runLater(new Runnable() {
                 @Override
