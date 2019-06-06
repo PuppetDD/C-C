@@ -227,13 +227,9 @@ public class NioClient extends Thread {
             });
             clientRe.getRetext().appendText("Connection to " + client.getRemoteAddress() + " successful\n");
             clientSe.getTextip().setText(u.getIp());
-            clientSe.getTextport().setText(String.valueOf(client.socket().getLocalPort()));
             clientSe.getTextname().setText(u.getName());
             clientSe.getTextlport().setText(String.valueOf(u.getPort()));
-            clientSe.getTextip().setEditable(false);
-            clientSe.getTextport().setEditable(false);
             clientSe.getTextname().setEditable(false);
-            clientSe.getTextlport().setEditable(false);
         }
     }
 
@@ -295,12 +291,8 @@ public class NioClient extends Thread {
             }
         });
         clientSe.getList().setItems(clientSe.getItems());
-        clientSe.getTextip().setEditable(true);
-        clientSe.getTextport().setEditable(true);
         clientSe.getTextname().setEditable(true);
-        clientSe.getTextlport().setEditable(true);
         clientSe.getTextip().setText(null);
-        clientSe.getTextport().setText(null);
         key.cancel();
         try {
             String s = client.getRemoteAddress().toString();

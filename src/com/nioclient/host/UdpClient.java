@@ -20,10 +20,9 @@ public class UdpClient extends Thread {
     public static Boolean error;
     public Boolean one;
 
-    public UdpClient(int port) {
+    public UdpClient() {
         System.out.println("\nNew UdpClient successful");
         error = false;
-        this.port = port;
         try {
             if (channel != null) {
                 //关闭上一次的线程通道，造成线程异常退出，释放socket以及端口
@@ -31,7 +30,9 @@ public class UdpClient extends Thread {
                 System.out.println("Close the previous thread");
             }
             channel = DatagramChannel.open();
-            channel.socket().bind(new InetSocketAddress(this.port));
+            channel.socket().bind(new InetSocketAddress(0));
+            this.port = channel.socket().getLocalPort();
+            System.out.println("Local Port:" + channel.socket().getLocalPort());
         } catch (IOException e) {
             NioClient.getClientRe().getRetext().appendText("The listening port is already in use\n");
             error = true;
@@ -78,6 +79,14 @@ public class UdpClient extends Thread {
             }
         }
         System.out.println("Stop listening port:" + port);
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 
 }

@@ -28,6 +28,7 @@ public class ServerSend extends VBox {
     public ServerSend() {
         GridPane grid = new GridPane();
         textip.setEditable(false);
+        textport.setEditable(false);
         grid.setHgap(20);
         grid.setVgap(10);
         grid.add(ip, 0, 0);

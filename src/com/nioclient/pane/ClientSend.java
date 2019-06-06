@@ -15,13 +15,11 @@ import javafx.scene.layout.VBox;
 public class ClientSend extends VBox {
 
     private Label ipaddress = new Label("IP:");
-    private Label port = new Label("Port:");
     private Label name = new Label("User:");
     private Label lport = new Label("Port:");
     private Label online = new Label("Client:");
     private Label sendmessage = new Label("Send Panel:");
     private TextField textip = new TextField(null);
-    private TextField textport = new TextField(null);
     private TextField textname = new TextField(null);
     private TextField textlport = new TextField(null);
     private ListView<User> list = new ListView<>();
@@ -35,13 +33,12 @@ public class ClientSend extends VBox {
         grid.setHgap(20);
         grid.setVgap(10);
         textip.setMaxWidth(130);
-        textport.setMaxWidth(90);
+        textip.setEditable(false);
         textname.setMaxWidth(130);
         textlport.setMaxWidth(90);
+        textlport.setEditable(false);
         grid.add(ipaddress, 0, 0);
         grid.add(textip, 1, 0);
-        grid.add(port, 2, 0);
-        grid.add(textport, 3, 0);
         grid.add(name, 0, 1);
         grid.add(textname, 1, 1);
         grid.add(lport, 2, 1);
@@ -67,10 +64,6 @@ public class ClientSend extends VBox {
 
     public TextField getTextip() {
         return textip;
-    }
-
-    public TextField getTextport() {
-        return textport;
     }
 
     public TextField getTextname() {

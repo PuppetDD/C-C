@@ -28,11 +28,10 @@ public class NioServer extends Thread {
     private Selector selector;
     private ServerSocketChannel serverSocketChannel;
     private ArrayList<User> list = new ArrayList<>();
-    private int port;
+    private int port=9999;
     private Boolean stop;
 
-    public NioServer(int port) {
-        this.port = port;
+    public NioServer() {
         try {
             this.stop = false;
             selector = Selector.open();
@@ -43,7 +42,6 @@ public class NioServer extends Thread {
             serverRe.getRetext().appendText("Server on\n");
             serverSe.getTextip().setText(serverSocketChannel.socket().getInetAddress().toString());
             serverSe.getTextport().setText(String.valueOf(serverSocketChannel.socket().getLocalPort()));
-            serverSe.getTextport().setEditable(false);
         } catch (IOException e) {
             serverRe.getRetext().appendText("The listening port is already in use\n");
             serverRe.getRetext().appendText("Server Startup Failure\n");
